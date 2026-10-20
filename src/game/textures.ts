@@ -504,3 +504,65 @@ export function barrierTexture(): THREE.Texture {
   cache.set(key, tex)
   return tex
 }
+
+export function skyCubeTexture(): THREE.CubeTexture {
+  const key = 'sky-cube'
+  if (cache.has(key)) return cache.get(key)! as THREE.CubeTexture
+  const face = (top: string, mid: string, bottom: string) => {
+    const c = document.createElement('canvas')
+    c.width = 64
+    c.height = 64
+    const ctx = c.getContext('2d')!
+    const g = ctx.createLinearGradient(0, 0, 0, 64)
+    g.addColorStop(0, top)
+    g.addColorStop(0.55, mid)
+    g.addColorStop(1, bottom)
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, 64, 64)
+    return c
+  }
+  const side = () => face('#7fb8e6', '#dff1ff', '#e6d3aa')
+  const tex = new THREE.CubeTexture([
+    side(),
+    side(),
+    face('#cfeaff', '#bfe4ff', '#bfe4ff'),
+    face('#e0c79a', '#c9a97a', '#c9a97a'),
+    side(),
+    side(),
+  ])
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.needsUpdate = true
+  cache.set(key, tex)
+  return tex
+}
+
+export function grimeTexture(): THREE.Texture {
+  const key = 'grime'
+  if (cache.has(key)) return cache.get(key)!
+  const [c, ctx] = canvas(256)
+  ctx.fillStyle = '#9aa0a4'
+  ctx.fillRect(0, 0, 256, 256)
+  for (let i = 0; i < 420; i++) {
+    const x = Math.random() * 256
+    const y = Math.random() * 256
+    const r = 2 + Math.random() * 16
+    ctx.fillStyle = `rgba(40, 38, 34, ${0.02 + Math.random() * 0.06})`
+    ctx.beginPath()
+    ctx.arc(x, y, r, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  for (let i = 0; i < 26; i++) {
+    const x = Math.random() * 256
+    ctx.fillStyle = `rgba(30, 28, 25, ${0.04 + Math.random() * 0.05})`
+    ctx.fillRect(x, 90 + Math.random() * 120, 3 + Math.random() * 9, 140)
+  }
+  const g = ctx.createLinearGradient(0, 0, 0, 256)
+  g.addColorStop(0, 'rgba(255,255,255,0.06)')
+  g.addColorStop(0.6, 'rgba(0,0,0,0)')
+  g.addColorStop(1, 'rgba(30,26,22,0.5)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 256, 256)
+  const tex = finish(c, [1, 1])
+  cache.set(key, tex)
+  return tex
+}

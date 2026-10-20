@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
-import { numberTexture, paintNormal, shadowTexture, tireTexture } from './textures.ts'
+import { grimeTexture, numberTexture, paintNormal, shadowTexture, skyCubeTexture, tireTexture } from './textures.ts'
 import type { NearestHit, Track } from './Track.ts'
 import { forwardFromYaw, rightFromYaw } from './Track.ts'
 import type { ItemKind } from './textures.ts'
@@ -425,7 +425,7 @@ export class Kart {
 
     this.bob += dt * (6 + this.speed * 0.35)
     const rough = this.offroad ? 0.055 : 0.012
-    this.body.position.y = Math.sin(this.bob) * rough + (this.boostTime > 0 ? 0.06 : 0)
+    this.body.position.y = Math.sin(this.bob) * rough + (this.boostTime > 0 ? 0.06 : 0) - this.brakeInput * 0.035
 
     this.wheelSpin += (this.speed / 0.46) * dt
     for (const w of [this.wheels.fl, this.wheels.fr, this.wheels.rl, this.wheels.rr]) {
@@ -474,14 +474,18 @@ function buildKartModel(spec: KartSpec): {
     clearcoatRoughness: 0.08,
     normalMap: paintNormal(),
     normalScale: new THREE.Vector2(0.06, 0.06),
+    envMap: skyCubeTexture(),
+    envMapIntensity: 0.75,
   })
   const accentMat = new THREE.MeshPhysicalMaterial({
     color: spec.accent,
     roughness: 0.28,
     metalness: 0.22,
     clearcoat: 0.9,
+    envMap: skyCubeTexture(),
+    envMapIntensity: 0.55,
   })
-  const trimMat = new THREE.MeshStandardMaterial({ color: spec.trim, roughness: 0.48, metalness: 0.5 })
+  const trimMat = new THREE.MeshStandardMaterial({ color: spec.trim, roughness: 0.58, metalness: 0.45, map: grimeTexture() })
   const rubberTread = new THREE.MeshStandardMaterial({ map: tireTexture(), color: 0xffffff, roughness: 0.92, metalness: 0.02 })
   const tread = new THREE.MeshStandardMaterial({ color: 0x2a2f33, roughness: 0.9, metalness: 0.05 })
   const chrome = new THREE.MeshStandardMaterial({ color: 0xdbe6ec, roughness: 0.16, metalness: 1 })
@@ -720,9 +724,9 @@ function buildKartModel(spec: KartSpec): {
       cap.position.x = side * (width / 2 + 0.04)
       spin.add(cap)
     }
-    for (let i = 0; i < 5; i++) {
-      const spoke = new THREE.Mesh(new THREE.BoxGeometry(width + 0.05, radius * 0.09, radius * 0.72), trimMat)
-      spoke.rotation.x = (i / 5) * Math.PI
+    for (let i = 0; i < 10; i++) {
+      const spoke = new THREE.Mesh(new THREE.BoxGeometry(width + 0.05, radius * 0.07, radius * 0.72), trimMat)
+      spoke.rotation.x = (i / 10) * Math.PI
       spin.add(spoke)
     }
     const discMat = new THREE.MeshStandardMaterial({ color: 0x6a7076, roughness: 0.35, metalness: 0.85 })
@@ -733,6 +737,13 @@ function buildKartModel(spec: KartSpec): {
       new THREE.MeshStandardMaterial({ color: 0xd83a2a, roughness: 0.35, metalness: 0.3 }),
     )
     caliper.position.set(0, radius * 0.32, 0)
+    const sidewallMat = new THREE.MeshStandardMaterial({ color: 0xe9e6dc, roughness: 0.7 })
+    for (const s of [-1, 1]) {
+      const band = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.86, radius * 0.028, 5, 30), sidewallMat)
+      band.rotation.y = Math.PI / 2
+      band.position.x = s * (width / 2 + 0.005)
+      spin.add(band)
+    }
     holder.add(spin, disc, caliper)
     return { holder, spin }
   }
