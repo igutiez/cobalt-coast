@@ -37,7 +37,7 @@ export interface TrackSpec {
 export const TRACKS: TrackSpec[] = [
   {
     id: 'cobalt',
-    name: 'COBALT COAST',
+    name: 'COSTA DE COBALTO',
     tagline: 'CURVAS ABIERTAS · MAR EN CALMA',
     radius: 175,
     a: 24,
@@ -67,7 +67,7 @@ export const TRACKS: TrackSpec[] = [
   },
   {
     id: 'laguna',
-    name: 'LAGUNA TWIST',
+    name: 'LAGUNA REVUELTA',
     tagline: 'TRAMOS RATONEROS · ATARDECER',
     radius: 170,
     a: 22,
@@ -97,7 +97,7 @@ export const TRACKS: TrackSpec[] = [
   },
   {
     id: 'dune',
-    name: 'DUNE SPRINT',
+    name: 'DUNAS VELOCES',
     tagline: 'RECTAS LARGAS · MEDIODÍA',
     radius: 200,
     a: 16,
@@ -127,7 +127,7 @@ export const TRACKS: TrackSpec[] = [
   },
   {
     id: 'jungle',
-    name: 'JUNGLE RUMBLE',
+    name: 'SELVA SALVAJE',
     tagline: 'TRAMOS CERRADOS · SELVA',
     radius: 152,
     a: 30,
@@ -158,7 +158,7 @@ export const TRACKS: TrackSpec[] = [
   },
   {
     id: 'volcano',
-    name: 'VOLCANO EDGE',
+    name: 'BORDE DEL VOLCÁN',
     tagline: 'PERALTES FUERTES · CENIZA',
     radius: 188,
     a: 21,
@@ -189,7 +189,7 @@ export const TRACKS: TrackSpec[] = [
   },
   {
     id: 'arctic',
-    name: 'ARCTIC LOOP',
+    name: 'BUCLE ÁRTICO',
     tagline: 'RÁPIDO Y ABIERTO · HIELO',
     radius: 212,
     a: 18,
@@ -220,7 +220,7 @@ export const TRACKS: TrackSpec[] = [
   },
   {
     id: 'harbor',
-    name: 'HARBOR CIRCUIT',
+    name: 'CIRCUITO DEL PUERTO',
     tagline: 'ASFALTO Y DIQUES · TARDE',
     radius: 162,
     a: 26,
@@ -251,7 +251,7 @@ export const TRACKS: TrackSpec[] = [
   },
   {
     id: 'canyon',
-    name: 'CANYON DASH',
+    name: 'CAÑÓN VELOZ',
     tagline: 'CURVAS CIEGAS · ROCA ROJA',
     radius: 178,
     a: 14,
@@ -282,7 +282,7 @@ export const TRACKS: TrackSpec[] = [
   },
   {
     id: 'neon',
-    name: 'NEON BAY',
+    name: 'BAHÍA NEÓN',
     tagline: 'NOCHE · CURVAS RÁPIDAS',
     radius: 168,
     a: 28,

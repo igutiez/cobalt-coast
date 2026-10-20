@@ -97,7 +97,7 @@ async function main() {
   window.addEventListener('resize', updateOrientation)
   fill.style.width = '18%'
   await new Promise((r) => requestAnimationFrame(() => r(null)))
-  status.textContent = 'SHAPING THE COASTLINE'
+  status.textContent = 'DIBUJANDO LA COSTA'
   await new Promise((r) => setTimeout(r, 60))
   fill.style.width = '46%'
   await new Promise((r) => requestAnimationFrame(() => r(null)))
@@ -114,10 +114,10 @@ async function main() {
   }
   window.__game = game
   fill.style.width = '82%'
-  status.textContent = 'TUNING THE BUGGIES'
+  status.textContent = 'AJUSTANDO LOS BUGGIES'
   await new Promise((r) => setTimeout(r, 320))
   fill.style.width = '100%'
-  status.textContent = 'READY'
+  status.textContent = 'LISTO'
 
   const started = performance.now()
   while (!game.hasRendered && performance.now() - started < 8000) {

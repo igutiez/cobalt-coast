@@ -27,8 +27,8 @@ export interface KartSpec {
 export const KART_SPECS: KartSpec[] = [
   {
     id: 'dune',
-    name: 'DUNE RUNNER',
-    tag: 'ALL ROUNDER',
+    name: 'DUNAS',
+    tag: 'EQUILIBRADO',
     number: 7,
     body: 0xff6b35,
     accent: 0x2ff2df,
@@ -38,8 +38,8 @@ export const KART_SPECS: KartSpec[] = [
   },
   {
     id: 'reef',
-    name: 'REEF ROCKET',
-    tag: 'TOP SPEED',
+    name: 'ARRECIFE',
+    tag: 'VELOCIDAD',
     number: 3,
     body: 0x2f7bff,
     accent: 0xffd166,
@@ -49,8 +49,8 @@ export const KART_SPECS: KartSpec[] = [
   },
   {
     id: 'mango',
-    name: 'MANGO MAYHEM',
-    tag: 'ACCELERATION',
+    name: 'MANGO',
+    tag: 'ACELERACIÓN',
     number: 11,
     body: 0xffc93c,
     accent: 0xff4d6d,
@@ -60,8 +60,8 @@ export const KART_SPECS: KartSpec[] = [
   },
   {
     id: 'kelp',
-    name: 'KELP KARTEL',
-    tag: 'CORNERING',
+    name: 'ALGAS',
+    tag: 'CURVAS',
     number: 5,
     body: 0x2fbf71,
     accent: 0xeafff8,

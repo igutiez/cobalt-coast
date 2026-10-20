@@ -76,7 +76,7 @@ export class HUD {
     this.lastItem = kind
     this.itemSlot.classList.toggle('empty', !kind)
     this.itemSlot.classList.toggle('ready', !!kind)
-    this.itemHint.textContent = kind ? 'USE' : 'ITEM'
+    this.itemHint.textContent = kind ? 'USAR' : 'OBJETO'
     const ctx = this.itemCanvas.getContext('2d')!
     ctx.clearRect(0, 0, 128, 128)
     if (kind) {
@@ -128,7 +128,7 @@ export class HUD {
     this.posSuffix.textContent = suffix
     this.lapCurrent.textContent = String(Math.min(lap, totalLaps))
     this.timer.textContent = fmt(raceTime)
-    this.lapTime.textContent = `LAP ${fmt(raceTime - player.lapStart)}`
+    this.lapTime.textContent = `VUELTA ${fmt(raceTime - player.lapStart)}`
 
     this.setItem(player.item)
     const charge = Math.min(1, player.driftCharge / 2.4)

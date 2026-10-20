@@ -3,6 +3,8 @@ import { TRACKS, trackOutline, type TrackSpec } from '../game/tracks.ts'
 
 export type Quality = 'high' | 'medium' | 'low'
 
+const QUALITY_LABELS: Record<Quality, string> = { high: 'ALTA', medium: 'MEDIA', low: 'BAJA' }
+
 export interface Standing {
   rank: number
   name: string
@@ -132,12 +134,12 @@ export class Menu {
     this.qualityBtn.addEventListener('click', () => {
       const order: Quality[] = ['high', 'medium', 'low']
       this.quality = order[(order.indexOf(this.quality) + 1) % order.length]
-      this.qualityBtn.textContent = `QUALITY: ${this.quality.toUpperCase()}`
+      this.qualityBtn.textContent = `CALIDAD: ${QUALITY_LABELS[this.quality]}`
       this.cb.onQuality(this.quality)
     })
     this.soundBtn.addEventListener('click', () => {
       this.soundOn = !this.soundOn
-      this.soundBtn.textContent = `SOUND: ${this.soundOn ? 'ON' : 'OFF'}`
+      this.soundBtn.textContent = `SONIDO: ${this.soundOn ? 'SÍ' : 'NO'}`
       this.cb.onSound(this.soundOn)
     })
     document.getElementById('btn-resume')!.addEventListener('click', () => this.cb.onResume())
@@ -348,7 +350,7 @@ export class Menu {
     const time = document.getElementById('results-time')!
     const list = document.getElementById('standings')!
     const player = standings.find((s) => s.isPlayer)
-    title.textContent = cup?.final && cup.champion ? 'CUP CHAMPION' : win ? 'VICTORY' : `${player?.rank}${ordinal(player?.rank ?? 4)} PLACE`
+    title.textContent = cup?.final && cup.champion ? 'CAMPEÓN DE COPA' : win ? '¡VICTORIA!' : `${player?.rank}º PUESTO`
     void win
     const cupEl = document.getElementById('results-cup')!
     const again = document.getElementById('btn-again')!
@@ -356,17 +358,17 @@ export class Menu {
     if (cup) {
       cupEl.classList.remove('hidden')
       if (cup.final) {
-        cupEl.textContent = `CUP TOTAL · ${cup.total} PTS`
-        label.textContent = 'NEW CUP'
+        cupEl.textContent = `TOTAL COPA · ${cup.total} PTS`
+        label.textContent = 'NUEVA COPA'
       } else {
-        cupEl.textContent = `CUP · ${cup.points} PTS · NEXT: ${cup.next ?? ''}`
-        label.textContent = 'NEXT RACE'
+        cupEl.textContent = `COPA · ${cup.points} PTS · SIGUIENTE: ${cup.next ?? ''}`
+        label.textContent = 'SIGUIENTE CARRERA'
       }
     } else {
       cupEl.classList.add('hidden')
-      label.textContent = 'RACE AGAIN'
+      label.textContent = 'OTRA CARRERA'
     }
-    time.textContent = `${format(totalTime)}  ·  BEST LAP ${format(playerBest)}`
+    time.textContent = `${format(totalTime)}  ·  MEJOR VUELTA ${format(playerBest)}`
     list.innerHTML = standings
       .map(
         (s) => `<div class="row ${s.isPlayer ? 'you' : ''}">
@@ -393,13 +395,7 @@ export class Menu {
 
   setQuality(q: Quality) {
     this.quality = q
-    this.qualityBtn.textContent = `QUALITY: ${q.toUpperCase()}`
+    this.qualityBtn.textContent = `CALIDAD: ${QUALITY_LABELS[q]}`
   }
 }
 
-function ordinal(n: number): string {
-  if (n === 1) return 'ST'
-  if (n === 2) return 'ND'
-  if (n === 3) return 'RD'
-  return 'TH'
-}

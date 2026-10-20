@@ -29,20 +29,20 @@
             <span id="pos-number">1</span><span id="pos-suffix">st</span>
           </div>
           <div class="lap-block">
-            <span class="label">LAP</span>
+            <span class="label">VUELTA</span>
             <span id="lap-current">1</span><span class="lap-total">/3</span>
           </div>
         </div>
 
         <div class="hud-top-center">
           <div class="timer" id="race-timer">00:00.000</div>
-          <div class="lap-time" id="lap-time">LAP 00:00.000</div>
+          <div class="lap-time" id="lap-time">VUELTA 00:00.000</div>
           <div class="speed-compact"><span id="speed-compact-value">0</span><span class="unit">KM/H</span></div>
         </div>
 
         <div class="hud-top-right">
           <canvas id="minimap" width="220" height="164"></canvas>
-          <button id="btn-pov" class="pov-btn">POV</button>
+          <button id="btn-pov" class="pov-btn">PILOTO</button>
         </div>
 
         <div class="hud-bottom-left">
@@ -52,18 +52,18 @@
 
         <div class="hud-bottom-center">
           <div id="drift-meter" class="drift-meter">
-            <div class="drift-label">DRIFT</div>
+            <div class="drift-label">DERRAPE</div>
             <div class="drift-bars"><i></i><i></i><i></i></div>
           </div>
           <div id="item-slot" class="item-slot empty">
             <canvas id="item-icon" width="128" height="128"></canvas>
-            <span id="item-hint">ITEM</span>
+            <span id="item-hint">OBJETO</span>
           </div>
         </div>
 
         <div class="countdown hidden" id="countdown"><span id="countdown-text">3</span></div>
         <div class="race-message hidden" id="race-message"></div>
-        <div id="wrong-way" class="wrong-way hidden">WRONG WAY</div>
+        <div id="wrong-way" class="wrong-way hidden">SENTIDO CONTRARIO</div>
         <div id="cam-hint" class="cam-hint hidden"></div>
         <div id="lap-flash" class="lap-flash hidden"></div>
 
@@ -84,9 +84,9 @@
             </svg>
           </div>
           <div class="touch-actions">
-            <button class="touch-btn brake" data-touch="brake" aria-label="Freno">BRAKE</button>
-            <button class="touch-btn drift" data-touch="drift" aria-label="Derrape">DRIFT</button>
-            <button class="touch-btn item" data-touch="item" aria-label="Objeto">ITEM</button>
+            <button class="touch-btn brake" data-touch="brake" aria-label="Freno">FRENO</button>
+            <button class="touch-btn drift" data-touch="drift" aria-label="Derrape">DERRAPE</button>
+            <button class="touch-btn item" data-touch="item" aria-label="Objeto">OBJETO</button>
           </div>
         </div>
       </div>
@@ -98,15 +98,15 @@
         <button id="build-badge" class="build-badge">v —</button>
         <div class="title-wrap">
           <div class="title-lockup">
-            <div class="kicker">VECTOR TIDE PRESENTS</div>
+            <div class="kicker">VECTOR TIDE PRESENTA</div>
             <h1 class="game-title"><span class="t1">COBALT</span><span class="t2">COAST</span></h1>
-            <div class="subtitle">BEACH KART RACING</div>
+            <div class="subtitle">CARRERAS DE KARTS EN LA PLAYA</div>
           </div>
 
           <div class="garage">
-            <div class="garage-title"><span>CIRCUIT</span></div>
+            <div class="garage-title"><span>CIRCUITO</span></div>
             <div class="track-rail" id="track-rail"></div>
-            <div class="garage-title" style="margin-top: 14px"><span>CHOOSE YOUR BUGGY</span></div>
+            <div class="garage-title" style="margin-top: 14px"><span>ELIGE TU BUGGY</span></div>
             <div class="car-rail" id="car-rail"></div>
             <div class="car-stats" id="car-stats">
               <div class="stat"><span>SPEED</span><div class="stat-bar"><i data-stat="speed"></i></div></div>
@@ -118,17 +118,17 @@
           <div class="title-actions">
             <button id="start-race" class="btn btn-primary">
               <span class="btn-shine"></span>
-              <span class="btn-label">RACE</span>
-              <span class="btn-sub">3 LAPS · 6 RACERS</span>
+              <span class="btn-label">CORRER</span>
+              <span class="btn-sub">3 VUELTAS · 6 PILOTOS</span>
             </button>
-            <button id="btn-cup" class="btn btn-ghost">CUP · 3 RACES</button>
-            <button id="btn-settings" class="btn btn-ghost">HOW TO PLAY</button>
+            <button id="btn-cup" class="btn btn-ghost">COPA · 5 CARRERAS</button>
+            <button id="btn-settings" class="btn btn-ghost">CÓMO JUGAR</button>
           </div>
 
           <div class="title-footer">
-            <button id="btn-quality" class="chip">QUALITY: HIGH</button>
-            <button id="btn-sound" class="chip">SOUND: ON</button>
-            <button id="btn-install" class="chip hidden">INSTALL APP</button>
+            <button id="btn-quality" class="chip">CALIDAD: ALTA</button>
+            <button id="btn-sound" class="chip">SONIDO: SÍ</button>
+            <button id="btn-install" class="chip hidden">INSTALAR APP</button>
           </div>
         </div>
       </section>
@@ -138,15 +138,15 @@
         <div class="screen-bg"></div>
         <div class="results-panel">
           <div class="results-head">
-            <div class="kicker">RACE COMPLETE</div>
-            <h2 id="results-title">2ND PLACE</h2>
+            <div class="kicker">CARRERA TERMINADA</div>
+            <h2 id="results-title">2º PUESTO</h2>
             <div class="results-time" id="results-time">02:14.882</div>
           <div class="results-cup hidden" id="results-cup"></div>
           </div>
           <div class="standings" id="standings"></div>
           <div class="results-actions">
-            <button id="btn-again" class="btn btn-primary"><span class="btn-label">RACE AGAIN</span></button>
-            <button id="btn-menu" class="btn btn-ghost">GARAGE</button>
+            <button id="btn-again" class="btn btn-primary"><span class="btn-label">OTRA CARRERA</span></button>
+            <button id="btn-menu" class="btn btn-ghost">GARAJE</button>
           </div>
         </div>
       </section>
@@ -167,20 +167,20 @@
       <section id="help-screen" class="screen hidden">
         <div class="screen-bg"></div>
         <div class="help-panel">
-          <div class="kicker">DRIVER BRIEFING</div>
-          <h2>HOW TO PLAY</h2>
+          <div class="kicker">INSTRUCCIONES</div>
+          <h2>CÓMO JUGAR</h2>
           <div class="help-grid">
-            <div class="help-row"><span class="keys"><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd></span><span>Steer</span></div>
-            <div class="help-row"><span class="keys"><kbd>S</kbd> / <kbd>↓</kbd></span><span>Brake</span></div>
-            <div class="help-row"><span class="keys"><kbd>SPACE</kbd></span><span>Drift — release to mini-turbo</span></div>
+            <div class="help-row"><span class="keys"><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd></span><span>Girar</span></div>
+            <div class="help-row"><span class="keys"><kbd>S</kbd> / <kbd>↓</kbd></span><span>Frenar</span></div>
+            <div class="help-row"><span class="keys"><kbd>SPACE</kbd></span><span>Derrape — suelta para mini-turbo</span></div>
             <div class="help-row"><span class="keys">📱</span><span>Móvil: volante abajo a la izquierda (arrastra), botones grandes a la derecha</span></div>
             <div class="help-row"><span class="keys">↕</span><span>Arrastra arriba/abajo en el fondo para ajustar la altura de la cámara</span></div>
-            <div class="help-row"><span class="keys"><kbd>E</kbd></span><span>Use item</span></div>
-            <div class="help-row"><span class="keys"><kbd>R</kbd></span><span>Reset to track</span></div>
-            <div class="help-row"><span class="keys"><kbd>ESC</kbd></span><span>Pause</span></div>
+            <div class="help-row"><span class="keys"><kbd>E</kbd></span><span>Usar objeto</span></div>
+            <div class="help-row"><span class="keys"><kbd>R</kbd></span><span>Recolocar en pista</span></div>
+            <div class="help-row"><span class="keys"><kbd>ESC</kbd></span><span>Pausa</span></div>
           </div>
-          <p class="help-note">Grab glowing crates for turbo, missiles, shields and oil slicks. Three laps, six racers — may the best buggy win.</p>
-          <button id="btn-help-close" class="btn btn-primary"><span class="btn-label">GOT IT</span></button>
+          <p class="help-note">Recoge las cajas brillantes para conseguir turbo, misiles, escudos y manchas de aceite. Tres vueltas y seis pilotos: que gane el mejor buggy.</p>
+          <button id="btn-help-close" class="btn btn-primary"><span class="btn-label">ENTENDIDO</span></button>
         </div>
       </section>
 
@@ -188,10 +188,10 @@
       <section id="pause-screen" class="screen hidden">
         <div class="screen-bg"></div>
         <div class="pause-panel">
-          <h2>PAUSED</h2>
-          <button id="btn-resume" class="btn btn-primary"><span class="btn-label">RESUME</span></button>
-          <button id="btn-restart" class="btn btn-ghost">RESTART RACE</button>
-          <button id="btn-quit" class="btn btn-ghost">QUIT TO GARAGE</button>
+          <h2>PAUSA</h2>
+          <button id="btn-resume" class="btn btn-primary"><span class="btn-label">SEGUIR</span></button>
+          <button id="btn-restart" class="btn btn-ghost">REINICIAR CARRERA</button>
+          <button id="btn-quit" class="btn btn-ghost">SALIR AL GARAJE</button>
         </div>
       </section>
     </div>

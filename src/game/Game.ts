@@ -423,7 +423,7 @@ export class Game {
     const player = new Kart(KART_SPECS[carIndex], true, this.track, 3)
     player.speedScale = this.input.isTouch ? 0.92 : 1
     const povButton = document.getElementById('btn-pov')
-    if (povButton) povButton.textContent = this.cameraMode === 'cockpit' ? 'CHASE' : 'POV'
+    if (povButton) povButton.textContent = this.cameraMode === 'cockpit' ? 'EXTERIOR' : 'PILOTO'
     this.cameraRig.mode = this.cameraMode
     player.group.visible = this.cameraMode !== 'cockpit'
     this.scene.add(player.group)
@@ -758,7 +758,7 @@ export class Game {
             this.audio.lap()
             const remaining = this.totalLaps - k.lapCount
             if (remaining > 0) {
-              this.hud.message(remaining === 1 ? 'FINAL LAP' : `LAP ${k.lapCount + 1}/${this.totalLaps}`, 1.6)
+              this.hud.message(remaining === 1 ? 'ÚLTIMA VUELTA' : `VUELTA ${k.lapCount + 1}/${this.totalLaps}`, 1.6)
             }
           }
           if (k.lapCount >= this.totalLaps && !k.finished) {
@@ -889,7 +889,7 @@ export class Game {
     this.cameraMode = this.cameraMode === 'chase' ? 'cockpit' : 'chase'
     this.cameraRig.mode = this.cameraMode
     const btn = document.getElementById('btn-pov')
-    if (btn) btn.textContent = this.cameraMode === 'cockpit' ? 'CHASE' : 'POV'
+    if (btn) btn.textContent = this.cameraMode === 'cockpit' ? 'EXTERIOR' : 'PILOTO'
     this.player.group.visible = this.cameraMode !== 'cockpit'
     try {
       localStorage.setItem('cobalt-camera-mode', this.cameraMode)
@@ -919,7 +919,7 @@ export class Game {
     this.audio.finish()
     this.audio.silenceEngine()
     this.effects.confetti(this.player.pos.clone().add(new THREE.Vector3(0, 3, 0)))
-    this.hud.message(this.player.rank === 1 ? 'VICTORY!' : 'RACE COMPLETE', 2.4)
+    this.hud.message(this.player.rank === 1 ? '¡VICTORIA!' : 'CARRERA TERMINADA', 2.4)
     this.cameraRig.kick(0.6)
     const standings = this.standings()
     const cup = this.cupResult()
