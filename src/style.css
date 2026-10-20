@@ -60,6 +60,11 @@ body {
   overscroll-behavior: none;
 }
 
+html,
+body {
+  background: #04101b;
+}
+
 #scene {
   position: fixed;
   inset: 0;
@@ -67,6 +72,9 @@ body {
   height: 100%;
   display: block;
   outline: none;
+  background:
+    radial-gradient(120% 90% at 50% 110%, rgba(255, 122, 60, 0.18), transparent 55%),
+    linear-gradient(180deg, #04101b 0%, #071c2c 55%, #0b2a3c 100%);
 }
 
 #ui {
@@ -1408,5 +1416,51 @@ kbd {
   .hud-top-right {
     top: 8px;
     right: 10px;
+  }
+}
+
+/* Compact landscape phones with the circuit rail */
+@media (orientation: landscape) and (max-height: 560px) {
+  .garage {
+    padding: 8px 9px;
+    max-height: 96vh;
+    overflow: hidden;
+  }
+  .track-rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+  .track-card {
+    padding: 4px 5px 5px;
+    min-width: 0;
+  }
+  .track-card canvas {
+    height: 26px;
+    margin-bottom: 3px;
+  }
+  .track-name {
+    font-size: 8.5px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .track-tag {
+    display: none;
+  }
+  .garage-title {
+    margin-bottom: 5px !important;
+  }
+  .car-thumb {
+    height: 24px;
+  }
+  .car-card {
+    padding: 4px 5px;
+  }
+  .car-name {
+    font-size: 8.5px;
+  }
+  .title-footer {
+    display: none;
   }
 }

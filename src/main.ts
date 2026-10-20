@@ -28,7 +28,14 @@ async function main() {
   await new Promise((r) => setTimeout(r, 60))
   fill.style.width = '46%'
 
-  const game = new Game(canvas)
+  let game: Game
+  try {
+    game = new Game(canvas)
+  } catch (error) {
+    status.textContent = 'TU NAVEGADOR NO PUEDE CREAR EL CONTEXTO WEBGL'
+    console.error(error)
+    return
+  }
   window.__game = game
   fill.style.width = '82%'
   status.textContent = 'TUNING THE BUGGIES'

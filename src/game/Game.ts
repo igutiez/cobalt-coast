@@ -127,6 +127,7 @@ export class Game {
   private finishedShown = false
   private totalLaps = 3
   private quality: Quality = 'high'
+  private gtaoSupported = false
   private lastBoost = false
   private driftClock = 0
   private readonly groundAt = (x: number, z: number) => this.world.groundHeight(x, z)
@@ -137,6 +138,7 @@ export class Game {
   private cup = { active: false, index: 0, points: {} as Record<string, number> }
 
   constructor(canvas: HTMLCanvasElement) {
+    this.quality = Game.detectQuality()
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: false,
@@ -186,9 +188,11 @@ export class Game {
     const size = new THREE.Vector2(window.innerWidth, window.innerHeight)
     this.composer = new EffectComposer(this.renderer)
     this.composer.addPass(new RenderPass(this.scene, this.cameraRig.camera))
+    this.gtaoSupported = this.renderer.capabilities.isWebGL2 && this.renderer.extensions.has('EXT_color_buffer_float')
     this.gtao = new GTAOPass(this.scene, this.cameraRig.camera, window.innerWidth, window.innerHeight)
     this.gtao.output = GTAOPass.OUTPUT.Default
     this.gtao.blendIntensity = 0.85
+    this.gtao.enabled = this.quality === 'high' && this.gtaoSupported
     this.composer.addPass(this.gtao)
     this.bloom = new UnrealBloomPass(size, 0.22, 0.45, 1.05)
     this.composer.addPass(this.bloom)
@@ -201,6 +205,14 @@ export class Game {
 
     this.wireItems()
 
+    this.menu.setQuality(this.quality)
+    this.setQuality(this.quality)
+    canvas.addEventListener('webglcontextlost', (event) => {
+      event.preventDefault()
+      const boot = document.getElementById('boot-status')
+      if (boot) boot.textContent = 'CONTEXTO GRÁFICO PERDIDO · RECARGA LA PÁGINA'
+      document.getElementById('boot')?.classList.remove('done')
+    })
     window.addEventListener('resize', () => this.onResize())
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && this.state === 'race') this.pause()
@@ -436,14 +448,21 @@ export class Game {
     this.audio.silenceEngine()
   }
 
+  static detectQuality(): Quality {
+    const touch =
+      matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0 || 'ontouchstart' in window
+    if (touch || Math.min(window.innerWidth, window.innerHeight) < 600) return 'medium'
+    return 'high'
+  }
+
   private setQuality(q: Quality) {
     this.quality = q
-    const ratio = q === 'high' ? Math.min(1.75, window.devicePixelRatio) : q === 'medium' ? 1.25 : 1
+    const ratio = q === 'high' ? Math.min(1.75, window.devicePixelRatio) : q === 'medium' ? Math.min(1.2, window.devicePixelRatio) : 1
     this.renderer.setPixelRatio(ratio)
     this.composer.setPixelRatio(ratio)
     this.world.sunLight.castShadow = q !== 'low'
     this.bloom.enabled = q !== 'low'
-    this.gtao.enabled = q === 'high'
+    this.gtao.enabled = q === 'high' && this.gtaoSupported
     this.smaa.enabled = q !== 'low'
     this.grade.enabled = q !== 'low'
     this.onResize()
@@ -606,6 +625,7 @@ export class Game {
     const dtRaw = this.clock.getDelta()
     const dt = Math.min(0.05, dtRaw)
     const time = this.clock.elapsedTime
+    this.monitorPerformance(dtRaw)
 
     if (this.state === 'menu') {
       this.heroAngle += dt
@@ -721,11 +741,73 @@ export class Game {
     requestAnimationFrame(this.loop)
   }
 
+  private perfFrames = 0
+  private perfTime = 0
+  private perfChecked = 0
+
+  private monitorPerformance(dt: number) {
+    if (this.state === 'menu' || this.perfChecked >= 2) return
+    this.perfFrames++
+    this.perfTime += dt
+    if (this.perfTime < 2.5) return
+    const fps = this.perfFrames / this.perfTime
+    this.perfFrames = 0
+    this.perfTime = 0
+    if (fps < 32 && this.quality === 'high') {
+      this.setQuality('medium')
+      this.menu.setQuality('medium')
+    } else if (fps < 24 && this.quality === 'medium') {
+      this.setQuality('low')
+      this.menu.setQuality('low')
+    } else {
+      this.perfChecked++
+    }
+  }
+
+  private firstFrameChecked = false
+
   private renderComposer() {
     if (this.quality === 'low') {
       this.renderer.render(this.scene, this.cameraRig.camera)
     } else {
       this.composer.render()
+    }
+    if (!this.firstFrameChecked) {
+      this.firstFrameChecked = true
+      this.checkFrameNotBlank()
+    }
+  }
+
+  /** Mobile GPUs without float render targets can produce an all-white frame; fall back to direct rendering. */
+  private checkFrameNotBlank() {
+    try {
+      const gl = this.renderer.getContext()
+      const canvas = this.renderer.domElement
+      const px = new Uint8Array(4)
+      const points: [number, number][] = [
+        [0.25, 0.2],
+        [0.5, 0.1],
+        [0.75, 0.25],
+      ]
+      let white = 0
+      for (const [fx, fy] of points) {
+        gl.readPixels(
+          Math.floor(canvas.width * fx),
+          Math.floor(canvas.height * fy),
+          1,
+          1,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          px,
+        )
+        if (px[0] > 248 && px[1] > 248 && px[2] > 248) white++
+      }
+      if (white >= 2 && this.quality !== 'low') {
+        this.setQuality('low')
+        this.menu.setQuality('low')
+      }
+    } catch {
+      // readPixels can be unavailable on some drivers; rendering stays as configured.
     }
   }
 
