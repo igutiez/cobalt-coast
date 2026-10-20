@@ -244,8 +244,9 @@ export class Menu {
       const card = document.createElement('button')
       card.className = 'track-card'
       const canvas = document.createElement('canvas')
-      canvas.width = 180
-      canvas.height = 92
+      canvas.width = 260
+      canvas.height = 132
+      card.style.setProperty('--accent', `#${spec.accent.toString(16).padStart(6, '0')}`)
       const name = document.createElement('div')
       name.className = 'track-name'
       name.textContent = spec.name
@@ -262,6 +263,7 @@ export class Menu {
   private drawTrack(canvas: HTMLCanvasElement, spec: TrackSpec) {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
+    const accent = `#${spec.accent.toString(16).padStart(6, '0')}`
     const outline = trackOutline(spec)
     let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity
     for (const p of outline) {
@@ -277,20 +279,30 @@ export class Menu {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.lineJoin = 'round'
     ctx.lineCap = 'round'
-    ctx.strokeStyle = 'rgba(4, 20, 32, 0.85)'
-    ctx.lineWidth = 13
     ctx.beginPath()
     outline.forEach((p, i) => (i === 0 ? ctx.moveTo(px(p.x), py(p.z)) : ctx.lineTo(px(p.x), py(p.z))))
     ctx.closePath()
+    ctx.strokeStyle = 'rgba(4, 18, 30, 0.95)'
+    ctx.lineWidth = 20
     ctx.stroke()
-    ctx.strokeStyle = 'rgba(120, 235, 255, 0.9)'
-    ctx.lineWidth = 3
+    ctx.save()
+    ctx.shadowColor = accent
+    ctx.shadowBlur = 12
+    ctx.strokeStyle = accent
+    ctx.lineWidth = 7
+    ctx.stroke()
+    ctx.restore()
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'
+    ctx.lineWidth = 2
     ctx.stroke()
     const start = outline[0]
     ctx.fillStyle = '#ffd166'
     ctx.beginPath()
-    ctx.arc(px(start.x), py(start.z), 4, 0, Math.PI * 2)
+    ctx.arc(px(start.x), py(start.z), 6, 0, Math.PI * 2)
     ctx.fill()
+    ctx.strokeStyle = 'rgba(4, 18, 30, 0.9)'
+    ctx.lineWidth = 2
+    ctx.stroke()
   }
 
   private selectTrack(index: number, notify = true) {

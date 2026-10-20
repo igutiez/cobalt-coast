@@ -38,9 +38,12 @@ export class Track {
   readonly itemSpots: { index: number; lateral: number }[] = []
   private lightMat!: THREE.MeshStandardMaterial
   private readonly count: number
+  private readonly accentRgb: [number, number, number]
 
   constructor(spec: TrackSpec) {
     this.spec = spec
+    const accent = new THREE.Color(spec.accent)
+    this.accentRgb = [accent.r, accent.g, accent.b]
     this.halfWidth = spec.width / 2
     const pts: THREE.Vector3[] = []
     const R = spec.radius
@@ -232,7 +235,8 @@ export class Track {
       uv[vo + 3] = node.s * uvScale
       if (col) {
         const on = Math.floor(node.s / 4) % 2 === 0
-        const c = on ? [0.85, 0.1, 0.12] : [0.95, 0.95, 0.95]
+        const accent = this.accentRgb
+        const c = on ? accent : [0.95, 0.95, 0.95]
         col[i * 6] = c[0]
         col[i * 6 + 1] = c[1]
         col[i * 6 + 2] = c[2]
