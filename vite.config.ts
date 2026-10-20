@@ -5,11 +5,19 @@ const buildId = Date.now().toString(36)
 function buildInfo(): Plugin {
   return {
     name: 'cobalt-build-info',
-    generateBundle() {
+    generateBundle(_options, bundle) {
       this.emitFile({
         type: 'asset',
         fileName: 'build.json',
         source: JSON.stringify({ id: buildId, builtAt: new Date().toISOString() }),
+      })
+      const files = Object.values(bundle)
+        .map((item) => item.fileName)
+        .filter((name) => /\.(js|css|woff2|png|svg|json|webmanifest)$/.test(name))
+      this.emitFile({
+        type: 'asset',
+        fileName: 'precache.json',
+        source: JSON.stringify({ id: buildId, files: files.map((name) => `./${name}`) }),
       })
     },
   }

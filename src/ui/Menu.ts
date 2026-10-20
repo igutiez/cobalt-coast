@@ -387,6 +387,10 @@ export class Menu {
     this.results.classList.add('hidden')
   }
 
+  setTrackIndex(index: number) {
+    this.selectTrack(index, false)
+  }
+
   setQuality(q: Quality) {
     this.quality = q
     this.qualityBtn.textContent = `QUALITY: ${q.toUpperCase()}`

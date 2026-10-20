@@ -13,6 +13,7 @@ declare global {
     __buildId?: string
     __checkUpdate?: () => Promise<void>
     __forceUpdate?: () => Promise<void>
+    __buildMs?: number
   }
 }
 
@@ -58,10 +59,9 @@ function showFatalOverlay(message: string) {
 
 async function hardUpdate() {
   try {
-    const keys = await caches.keys()
-    await Promise.all(keys.map((key) => caches.delete(key)))
+    await navigator.serviceWorker?.getRegistration()?.then((registration) => registration?.update())
   } catch {
-    // Storage blocked: the cache-busted navigation still fetches the network copy.
+    // Offline: the cached build keeps working.
   }
   location.replace(`${location.pathname}?u=${Date.now()}`)
 }
@@ -104,7 +104,9 @@ async function main() {
 
   let game: Game
   try {
+    const buildStart = performance.now()
     game = new Game(canvas)
+    window.__buildMs = Math.round(performance.now() - buildStart)
   } catch (error) {
     status.textContent = 'TU NAVEGADOR NO PUEDE CREAR EL CONTEXTO WEBGL'
     console.error(error)
@@ -133,12 +135,13 @@ async function main() {
 
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     navigator.serviceWorker
-      .register('./sw.js')
+      .register(`./sw.js?v=${__BUILD_ID__}`)
       .then((registration) => registration.update())
       .catch(() => {
         /* offline support is optional; the game runs without it */
       })
   }
+  if (game.autoRace) void game.startRace(game.initialCar)
   void checkForUpdate()
   window.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') void checkForUpdate()

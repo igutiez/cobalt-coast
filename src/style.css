@@ -143,6 +143,22 @@ body {
   background: rgba(255, 255, 255, 0.1);
   overflow: hidden;
 }
+.boot-bar {
+  position: relative;
+}
+.boot-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: translateX(-100%);
+  animation: boot-sweep 1.4s ease-in-out infinite;
+}
+@keyframes boot-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
 .boot-bar i {
   display: block;
   height: 100%;

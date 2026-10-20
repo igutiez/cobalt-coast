@@ -1,4 +1,5 @@
-const CACHE = 'cobalt-coast-v16'
+const VERSION = new URL(self.location.href).searchParams.get('v') || 'dev'
+const CACHE = `cobalt-coast-${VERSION}`
 const CORE = [
   './',
   './index.html',
@@ -13,10 +14,20 @@ const CORE = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE)
-      .then((cache) => cache.addAll(CORE))
-      .then(() => self.skipWaiting()),
+    (async () => {
+      const cache = await caches.open(CACHE)
+      await cache.addAll(CORE)
+      try {
+        const response = await fetch('./precache.json', { cache: 'no-store' })
+        if (response.ok) {
+          const data = await response.json()
+          await cache.addAll(data.files)
+        }
+      } catch {
+        // Offline install: core files are enough to boot.
+      }
+      await self.skipWaiting()
+    })(),
   )
 })
 
@@ -34,7 +45,7 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return
   const url = new URL(req.url)
   if (url.origin !== self.location.origin) return
-  if (url.pathname.endsWith('/build.json')) return
+  if (url.pathname.endsWith('/build.json') || url.pathname.endsWith('/precache.json')) return
 
   if (req.mode === 'navigate') {
     event.respondWith(

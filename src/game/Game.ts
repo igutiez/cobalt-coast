@@ -129,6 +129,12 @@ export class Game {
   private quality: Quality = 'high'
   private gtaoSupported = false
   private readonly lowSpec = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0
+  private readonly ultraSpec = (() => {
+    if (new URLSearchParams(window.location.search).get('lite') === '1') return true
+    const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8
+    const cores = navigator.hardwareConcurrency ?? 8
+    return memory <= 4 || cores <= 4
+  })()
   private lastBoost = false
   private driftClock = 0
   private readonly groundAt = (x: number, z: number) => this.world.groundHeight(x, z)
@@ -140,8 +146,22 @@ export class Game {
   private cameraMode: 'chase' | 'cockpit' = 'chase'
   private cup = { active: false, index: 0, points: {} as Record<string, number> }
 
+  readonly initialCar: number
+  readonly autoRace: boolean
+
   constructor(canvas: HTMLCanvasElement) {
     this.quality = Game.detectQuality()
+    const params = new URLSearchParams(window.location.search)
+    const trackParam = Number(params.get('track'))
+    this.trackIndex = Number.isInteger(trackParam) && trackParam >= 0 && trackParam < TRACKS.length ? trackParam : 0
+    this.initialCar = Number(params.get('car')) || 0
+    this.autoRace = params.get('race') === '1'
+    try {
+      const savedCup = sessionStorage.getItem('cobalt-cup')
+      if (savedCup) this.cup = JSON.parse(savedCup)
+    } catch {
+      // Storage blocked: the cup starts fresh.
+    }
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: false,
@@ -158,9 +178,9 @@ export class Game {
 
     this.cameraRig = new CameraRig(window.innerWidth / window.innerHeight)
     this.cameraRig.mobile = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0
-    this.track = new Track(TRACKS[0])
+    this.track = new Track(TRACKS[this.trackIndex])
     this.scene.add(this.track.group)
-    this.world = new World(this.track, this.renderer, this.scene, TRACKS[0].theme, this.lowSpec)
+    this.world = new World(this.track, this.renderer, this.scene, TRACKS[this.trackIndex].theme, this.lowSpec, this.ultraSpec)
     this.scene.add(this.world.group)
     const fill = new THREE.DirectionalLight(0xbfe4ff, 0.55)
     fill.position.set(0, 6, 10)
@@ -215,6 +235,8 @@ export class Game {
     this.wireItems()
 
     this.menu.setQuality(this.quality)
+    this.menu.setTrackIndex(this.trackIndex)
+    this.currentCar = this.initialCar
     this.setQuality(this.quality)
     canvas.addEventListener('webglcontextlost', (event) => {
       event.preventDefault()
@@ -261,67 +283,24 @@ export class Game {
     }
   }
 
-  private disposeObject(root: THREE.Object3D) {
-    root.traverse((o) => {
-      const mesh = o as THREE.Mesh
-      if (!mesh.isMesh) return
-      mesh.geometry?.dispose()
-      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-      for (const material of materials) material?.dispose()
-    })
-  }
-
-  private rebuildWorld() {
-    this.disposeKarts()
-    this.scene.remove(this.track.group)
-    this.scene.remove(this.world.group)
-    this.scene.remove(this.items.group)
-    this.track.dispose()
-    this.world.dispose()
-    this.disposeObject(this.items.group)
-    this.renderer.renderLists.dispose()
-    const spec = TRACKS[this.trackIndex]
-    this.track = new Track(spec)
-    this.scene.add(this.track.group)
-    this.world = new World(this.track, this.renderer, this.scene, spec.theme, this.lowSpec)
-    this.scene.add(this.world.group)
-    this.items = new Items(this.track, this.effects)
-    this.scene.add(this.items.group)
-    this.wireItems()
-    this.hud.setTrack(this.track)
-  }
-
   private selectTrack(index: number) {
     this.pendingTrack = index === this.trackIndex ? null : index
   }
 
-  private async applyPendingTrack() {
-    if (this.pendingTrack === null || this.pendingTrack === this.trackIndex) {
-      this.pendingTrack = null
-      return
-    }
-    const loading = document.getElementById('track-loading')
-    loading?.classList.remove('hidden')
-    await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 40)))
-    this.trackIndex = this.pendingTrack
-    this.pendingTrack = null
+  private saveCup() {
     try {
-      this.rebuildWorld()
-    } catch (error) {
-      console.error(error)
-      document.getElementById('fatal')?.classList.remove('hidden')
-      const text = document.getElementById('fatal-text')
-      if (text) text.textContent = `No se pudo cargar el circuito. ${String(error)}`
-      return
+      sessionStorage.setItem('cobalt-cup', JSON.stringify(this.cup))
+    } catch {
+      // Storage blocked: the cup restarts on reload.
     }
-    loading?.classList.add('hidden')
   }
 
   private startCup() {
     this.cup = { active: true, index: 0, points: {} }
     this.audio.click()
-    this.pendingTrack = 0
-    void this.startRace(this.selectedCar())
+    this.saveCup()
+    this.pendingTrack = this.trackIndex === 0 ? null : 0
+    void this.startRace(0)
   }
 
   private cupPointsFor(rank: number): number {
@@ -355,6 +334,7 @@ export class Game {
     if (this.cup.active) {
       if (this.cup.index < TRACKS.length - 1) {
         this.cup.index++
+        this.saveCup()
         this.menu.hideResults()
         this.pendingTrack = this.cup.index
         void this.startRace(this.currentCar)
@@ -417,7 +397,18 @@ export class Game {
   }
 
   async startRace(carIndex: number) {
-    await this.applyPendingTrack()
+    if (this.pendingTrack !== null && this.pendingTrack !== this.trackIndex) {
+      this.saveCup()
+      const url = new URL(window.location.href)
+      url.searchParams.set('track', String(this.pendingTrack))
+      url.searchParams.set('car', String(carIndex))
+      url.searchParams.set('race', '1')
+      if (this.cup.active) url.searchParams.set('cup', '1')
+      else url.searchParams.delete('cup')
+      window.location.assign(url.toString())
+      return
+    }
+    this.pendingTrack = null
     this.currentCar = carIndex
     this.audio.unlock()
     this.audio.click()
@@ -923,6 +914,7 @@ export class Game {
     this.state = 'finished'
     this.updateRanks()
     this.awardCupPoints()
+    this.saveCup()
     this.audio.finish()
     this.audio.silenceEngine()
     this.effects.confetti(this.player.pos.clone().add(new THREE.Vector3(0, 3, 0)))
