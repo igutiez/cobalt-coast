@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
-import { palmFrondTexture, sandTexture } from './textures.ts'
+import { palmFrondTexture, sandNormal, sandTexture } from './textures.ts'
 import type { Track, TrackNode } from './Track.ts'
 import type { TrackTheme } from './tracks.ts'
 
@@ -234,7 +234,7 @@ export class World {
       const high = smoothstep(2.6, 7, h)
       tmp.copy(cDry).lerp(cHigh, high).lerp(cWet, wet * 0.85)
       if (h < -1.2) tmp.lerp(cUnder, smoothstep(-1.2, -4, h))
-      const n = 0.92 + hash2(x * 0.3, z * 0.3) * 0.16
+      const n = (0.92 + hash2(x * 0.3, z * 0.3) * 0.16) * (0.95 + Math.sin(x * 0.021) * 0.03 + Math.cos(z * 0.017) * 0.03)
       colors[i * 3] = tmp.r * n
       colors[i * 3 + 1] = tmp.g * n
       colors[i * 3 + 2] = tmp.b * n
@@ -244,6 +244,8 @@ export class World {
     const sand = sandTexture()
     const mat = new THREE.MeshStandardMaterial({
       map: sand,
+      normalMap: sandNormal(),
+      normalScale: new THREE.Vector2(0.9, 0.9),
       vertexColors: true,
       roughness: 0.94,
       metalness: 0,

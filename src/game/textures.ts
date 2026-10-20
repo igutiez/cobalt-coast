@@ -54,15 +54,76 @@ export function roadTexture(): THREE.Texture {
     ctx.arc(x, y, r, 0, Math.PI * 2)
     ctx.fill()
   }
-  ctx.fillStyle = 'rgba(255,255,255,0.35)'
-  ctx.fillRect(18, 0, 4, 512)
-  ctx.fillRect(490, 0, 4, 512)
-  ctx.fillStyle = 'rgba(255,255,255,0.55)'
+  for (let i = 0; i < 7; i++) {
+    ctx.fillStyle = `rgba(20, 22, 26, ${0.05 + Math.random() * 0.06})`
+    ctx.beginPath()
+    ctx.ellipse(Math.random() * 512, Math.random() * 512, 30 + Math.random() * 70, 14 + Math.random() * 30, Math.random() * 3, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  ctx.strokeStyle = 'rgba(18, 20, 24, 0.35)'
+  for (let i = 0; i < 10; i++) {
+    let x = Math.random() * 512
+    let y = Math.random() * 512
+    ctx.lineWidth = 0.8 + Math.random()
+    ctx.beginPath()
+    ctx.moveTo(x, y)
+    for (let k = 0; k < 4; k++) {
+      x += (Math.random() - 0.5) * 46
+      y += 14 + Math.random() * 22
+      ctx.lineTo(x, y)
+    }
+    ctx.stroke()
+  }
+  ctx.fillStyle = 'rgba(15, 16, 20, 0.1)'
+  ctx.fillRect(120, 0, 82, 512)
+  ctx.fillRect(310, 0, 82, 512)
+  ctx.fillStyle = 'rgba(255,255,255,0.62)'
+  ctx.fillRect(18, 0, 5, 512)
+  ctx.fillRect(489, 0, 5, 512)
+  ctx.fillStyle = 'rgba(255,255,255,0.78)'
   for (let y = 0; y < 512; y += 128) {
     ctx.fillRect(254, y + 24, 5, 80)
   }
   grain(ctx, 512, 512, 26, 0.6)
   const tex = finish(c, [1, 1])
+  cache.set(key, tex)
+  return tex
+}
+
+export function sandNormal(): THREE.Texture {
+  const key = 'sand-normal'
+  if (cache.has(key)) return cache.get(key)!
+  const size = 128
+  const height = new Float32Array(size * size)
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const u = x / size
+      const v = y / size
+      height[y * size + x] =
+        Math.sin(u * Math.PI * 2 * 9 + Math.sin(v * Math.PI * 2 * 4) * 1.6) * 0.5 +
+        Math.sin(v * Math.PI * 2 * 13 + Math.sin(u * Math.PI * 2 * 5) * 1.2) * 0.35 +
+        (Math.random() - 0.5) * 0.18
+    }
+  }
+  const [c, ctx] = canvas(size)
+  const img = ctx.createImageData(size, size)
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const l = height[y * size + ((x - 1 + size) % size)]
+      const r = height[y * size + ((x + 1) % size)]
+      const d = height[((y - 1 + size) % size) * size + x]
+      const u = height[((y + 1) % size) * size + x]
+      const nx = (l - r) * 1.2
+      const ny = (d - u) * 1.2
+      const i = (y * size + x) * 4
+      img.data[i] = Math.max(0, Math.min(255, (nx * 0.5 + 0.5) * 255))
+      img.data[i + 1] = Math.max(0, Math.min(255, (ny * 0.5 + 0.5) * 255))
+      img.data[i + 2] = 255
+      img.data[i + 3] = 255
+    }
+  }
+  ctx.putImageData(img, 0, 0)
+  const tex = finish(c, [38, 38])
   cache.set(key, tex)
   return tex
 }

@@ -38,12 +38,9 @@ export class Track {
   readonly itemSpots: { index: number; lateral: number }[] = []
   private lightMat!: THREE.MeshStandardMaterial
   private readonly count: number
-  private readonly accentRgb: [number, number, number]
 
   constructor(spec: TrackSpec) {
     this.spec = spec
-    const accent = new THREE.Color(spec.accent)
-    this.accentRgb = [accent.r, accent.g, accent.b]
     this.halfWidth = spec.width / 2
     const pts: THREE.Vector3[] = []
     const R = spec.radius
@@ -189,6 +186,7 @@ export class Track {
     shoulderL.receiveShadow = shoulderR.receiveShadow = true
     this.group.add(shoulderL, shoulderR)
 
+    this.buildMarkers()
     this.buildStartGate()
   }
 
@@ -235,8 +233,7 @@ export class Track {
       uv[vo + 3] = node.s * uvScale
       if (col) {
         const on = Math.floor(node.s / 4) % 2 === 0
-        const accent = this.accentRgb
-        const c = on ? accent : [0.95, 0.95, 0.95]
+        const c = on ? [0.82, 0.1, 0.11] : [0.95, 0.95, 0.95]
         col[i * 6] = c[0]
         col[i * 6 + 1] = c[1]
         col[i * 6 + 2] = c[2]
@@ -256,6 +253,44 @@ export class Track {
     if (col) geo.setAttribute('color', new THREE.BufferAttribute(col, 3))
     geo.setIndex(idx)
     return geo
+  }
+
+  private buildMarkers() {
+    const step = 15
+    const count = Math.max(3, Math.floor(this.length / step))
+    const postGeo = new THREE.BoxGeometry(0.14, 0.8, 0.14)
+    const capGeo = new THREE.BoxGeometry(0.17, 0.18, 0.17)
+    const postMat = new THREE.MeshStandardMaterial({ color: 0xf2f2ee, roughness: 0.6, metalness: 0.05 })
+    const capMat = new THREE.MeshStandardMaterial({
+      color: 0xe0442a,
+      emissive: 0x5a120a,
+      emissiveIntensity: 0.5,
+      roughness: 0.35,
+    })
+    const posts = new THREE.InstancedMesh(postGeo, postMat, count * 2)
+    const caps = new THREE.InstancedMesh(capGeo, capMat, count * 2)
+    const matrix = new THREE.Matrix4()
+    const quat = new THREE.Quaternion()
+    const up = new THREE.Vector3(0, 1, 0)
+    const one = new THREE.Vector3(1, 1, 1)
+    let k = 0
+    for (let i = 0; i < count; i++) {
+      const node = this.sample(Math.round((i / count) * this.count))
+      quat.setFromAxisAngle(up, Math.atan2(node.tan.x, node.tan.z))
+      for (const side of [-1, 1]) {
+        const base = this.edge(node, side * (this.halfWidth + 2.9), 0)
+        const post = base.clone()
+        post.y += 0.4
+        matrix.compose(post, quat, one)
+        posts.setMatrixAt(k, matrix)
+        const cap = base.clone()
+        cap.y += 0.86
+        matrix.compose(cap, quat, one)
+        caps.setMatrixAt(k, matrix)
+        k++
+      }
+    }
+    this.group.add(posts, caps)
   }
 
   private buildStartGate() {
