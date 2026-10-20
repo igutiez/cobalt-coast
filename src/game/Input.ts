@@ -78,7 +78,8 @@ export class Input {
     const apply = (deg: number) => {
       current = deg
       rotor.style.transform = `rotate(${deg}deg)`
-      this.wheelSteer = -deg / maxAngle
+      const raw = -deg / maxAngle
+      this.wheelSteer = Math.abs(raw) < 0.07 ? 0 : raw
     }
     wheel.addEventListener('pointerdown', (e) => {
       e.preventDefault()
@@ -99,7 +100,7 @@ export class Input {
       const from = current
       const t0 = performance.now()
       const step = () => {
-        const t = Math.min(1, (performance.now() - t0) / 170)
+        const t = Math.min(1, (performance.now() - t0) / 260)
         const eased = 1 - Math.pow(1 - t, 3)
         apply(from * (1 - eased))
         if (t < 1) requestAnimationFrame(step)
@@ -109,7 +110,7 @@ export class Input {
     window.addEventListener('pointermove', (e) => {
       if (pointerId === null || e.pointerId !== pointerId) return
       e.preventDefault()
-      const deg = Math.max(-maxAngle, Math.min(maxAngle, base + (e.clientX - startX) * 0.9))
+      const deg = Math.max(-maxAngle, Math.min(maxAngle, base + (e.clientX - startX) * 1.45))
       apply(deg)
     })
     window.addEventListener('pointerup', end)

@@ -125,6 +125,7 @@ export class Kart {
   private bodyPitch = 0
   private bob = Math.random() * 6.28
   private readonly span: number
+  speedScale = 1
 
   constructor(spec: KartSpec, isPlayer: boolean, track: Track, slot: number) {
     this.spec = spec
@@ -285,11 +286,11 @@ export class Kart {
       this.speed *= 1 - 1.4 * dt
     }
 
-    this.steer += (input.steer - this.steer) * Math.min(1, dt * 6.5)
+    this.steer += (input.steer - this.steer) * Math.min(1, dt * 8.5)
     const drifting = input.drift && this.speed > 9 && Math.abs(this.steer) > 0.2 && !spin && racing
     this.drifting = drifting
 
-    let targetSpeed = stats.maxSpeed
+    let targetSpeed = stats.maxSpeed * this.speedScale
     if (this.offroad) targetSpeed *= 0.58
     if (this.boostTime > 0) {
       targetSpeed *= 1.5
@@ -307,7 +308,7 @@ export class Kart {
       if (this.speed < 0) this.speed = 0
       const turnMul = drifting ? 1.55 : 1
       const highSpeed = THREE.MathUtils.clamp((this.speed - 16) / 24, 0, 1)
-      const turnRate = stats.turn * (0.95 - 0.4 * highSpeed) * turnMul
+      const turnRate = stats.turn * (0.98 - 0.3 * highSpeed) * turnMul
       this.yaw += this.steer * turnRate * dt
       if (Math.abs(this.steer) > 0.65 && this.speed > 24) {
         this.speed -= (this.speed - 24) * 0.4 * dt

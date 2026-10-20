@@ -10,6 +10,8 @@ const rotate = document.getElementById('rotate-hint')!
 declare global {
   interface Window {
     __game?: Game
+    __buildId?: string
+    __checkUpdate?: () => Promise<void>
   }
 }
 
@@ -27,7 +29,36 @@ function showFatal(message: string) {
   if (status) status.textContent = message
 }
 
+const VERSION_KEY = 'cobalt-build-id'
+
+async function checkForUpdate() {
+  if (!import.meta.env.PROD) return
+  try {
+    const response = await fetch(`./build.json?t=${Date.now()}`, { cache: 'no-store' })
+    if (!response.ok) return
+    const data = (await response.json()) as { id?: string }
+    if (!data.id || data.id === __BUILD_ID__) return
+    if (sessionStorage.getItem(VERSION_KEY) === data.id) return
+    sessionStorage.setItem(VERSION_KEY, data.id)
+    const toast = document.createElement('div')
+    toast.className = 'update-toast'
+    toast.textContent = 'NUEVA VERSIÓN · ACTUALIZANDO…'
+    document.body.appendChild(toast)
+    const keys = await caches.keys()
+    await Promise.all(keys.map((key) => caches.delete(key)))
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(registrations.map((registration) => registration.unregister()))
+    }
+    window.setTimeout(() => location.reload(), 500)
+  } catch {
+    // Offline or blocked storage: keep playing the cached version.
+  }
+}
+
 async function main() {
+  window.__buildId = __BUILD_ID__
+  window.__checkUpdate = checkForUpdate
   window.addEventListener('error', (event) => {
     showFatal(`ERROR: ${event.message}`)
   })
@@ -71,10 +102,20 @@ async function main() {
   window.setTimeout(() => boot.remove(), 900)
 
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {
-      /* offline support is optional; the game runs without it */
-    })
+    navigator.serviceWorker
+      .register('./sw.js')
+      .then((registration) => registration.update())
+      .catch(() => {
+        /* offline support is optional; the game runs without it */
+      })
   }
+  void checkForUpdate()
+  window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') void checkForUpdate()
+  })
+  window.setInterval(() => {
+    if (document.visibilityState === 'visible') void checkForUpdate()
+  }, 300000)
 }
 
 void main()

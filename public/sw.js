@@ -1,4 +1,4 @@
-const CACHE = 'cobalt-coast-v5'
+const CACHE = 'cobalt-coast-v7'
 const CORE = [
   './',
   './index.html',
@@ -34,6 +34,7 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return
   const url = new URL(req.url)
   if (url.origin !== self.location.origin) return
+  if (url.pathname.endsWith('/build.json')) return
 
   if (req.mode === 'navigate') {
     event.respondWith(

@@ -14,6 +14,7 @@ export class CameraRig {
   private fov = 66
   private orbit = 0
   private intro = 0
+  mobile = false
 
   constructor(aspect: number) {
     this.camera = new THREE.PerspectiveCamera(66, aspect, 0.35, 9000)
@@ -106,7 +107,7 @@ export class CameraRig {
     this.camera.position.add(this.shakeOffset)
     this.camera.lookAt(this.smoothLook)
 
-    const targetFov = 62 + speedRatio * 9 + (kart.boostTime > 0 ? 7 : 0)
+    const targetFov = (this.mobile ? 66 : 62) + speedRatio * 9 + (kart.boostTime > 0 ? 7 : 0)
     this.fov += (targetFov - this.fov) * Math.min(1, dt * 3)
     this.camera.fov = this.fov
     this.camera.updateProjectionMatrix()

@@ -1491,3 +1491,19 @@ kbd {
     display: none;
   }
 }
+
+.update-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 200;
+  padding: 10px 18px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.18em;
+  color: #04101b;
+  background: linear-gradient(100deg, #2ff2df, #7dfcff);
+  border-radius: 3px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}

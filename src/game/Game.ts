@@ -154,6 +154,7 @@ export class Game {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
     this.cameraRig = new CameraRig(window.innerWidth / window.innerHeight)
+    this.cameraRig.mobile = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0
     this.track = new Track(TRACKS[0])
     this.scene.add(this.track.group)
     this.world = new World(this.track, this.renderer, this.scene, TRACKS[0].theme)
@@ -399,6 +400,7 @@ export class Game {
     this.countdown = 3.9
 
     const player = new Kart(KART_SPECS[carIndex], true, this.track, 3)
+    player.speedScale = this.input.isTouch ? 0.9 : 1
     this.scene.add(player.group)
     this.player = player
     this.karts = [player]
@@ -407,6 +409,7 @@ export class Game {
     const slots = [0, 1, 2, 4, 5]
     specs.forEach((spec, i) => {
       const kart = new Kart(spec, false, this.track, slots[i])
+      kart.speedScale = this.input.isTouch ? 0.94 : 1
       this.scene.add(kart.group)
       this.karts.push(kart)
       this.ai.push({ kart, itemTimer: 3 + Math.random() * 5, lane: 0, laneTarget: 0 })
