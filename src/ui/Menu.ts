@@ -110,6 +110,8 @@ export class Menu {
   private readonly qualityBtn = document.getElementById('btn-quality')!
   private readonly soundBtn = document.getElementById('btn-sound')!
   private readonly installBtn = document.getElementById('btn-install')!
+  private readonly installFab = document.getElementById('install-fab')!
+  private readonly installToast = document.getElementById('install-toast')!
   private quality: Quality = 'high'
   private soundOn = true
   private installPrompt: (() => Promise<void>) | null = null
@@ -150,16 +152,59 @@ export class Menu {
       document.getElementById('help-screen')!.classList.add('hidden')
     })
 
+    const standalone =
+      matchMedia('(display-mode: standalone)').matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault()
-      const ev = e as Event & { prompt: () => Promise<void> }
+      const ev = e as Event & { prompt: () => Promise<void>; userChoice?: Promise<{ outcome: string }> }
       this.installPrompt = () => ev.prompt()
-      this.installBtn.classList.remove('hidden')
+      this.showInstall()
+    })
+    window.addEventListener('appinstalled', () => {
+      this.installFab.classList.add('hidden')
+      this.installBtn.classList.add('hidden')
+      this.showToast('App instalada. Ábrela desde el icono de tu pantalla de inicio.')
+    })
+    this.installFab.addEventListener('click', () => {
+      if (this.installPrompt) {
+        void this.installPrompt()
+        return
+      }
+      if (ios) {
+        this.showToast('En Safari: toca Compartir (⬆) y elige «Añadir a pantalla de inicio».')
+      } else {
+        this.showToast('Abre el menú del navegador y elige «Instalar app» o «Añadir a pantalla de inicio».')
+      }
     })
     this.installBtn.addEventListener('click', () => {
-      void this.installPrompt?.()
+      if (this.installPrompt) void this.installPrompt()
+      else if (ios) this.showToast('En Safari: toca Compartir (⬆) y elige «Añadir a pantalla de inicio».')
+      else this.showToast('Abre el menú del navegador y elige «Instalar app».')
     })
+
+    if (!standalone && (ios || matchMedia('(pointer: coarse)').matches)) {
+      this.installFab.textContent = this.installPrompt ? 'INSTALAR APP' : 'CÓMO INSTALAR'
+      this.installFab.classList.remove('hidden')
+    }
   }
+
+  private showInstall() {
+    this.installFab.textContent = 'INSTALAR APP'
+    this.installFab.classList.remove('hidden')
+    this.installBtn.classList.remove('hidden')
+  }
+
+  private showToast(message: string) {
+    this.installToast.textContent = message
+    this.installToast.classList.remove('hidden')
+    window.clearTimeout(this.toastTimer)
+    this.toastTimer = window.setTimeout(() => this.installToast.classList.add('hidden'), 7000)
+  }
+
+  private toastTimer = 0
 
   private buildRail() {
     this.rail.innerHTML = ''
