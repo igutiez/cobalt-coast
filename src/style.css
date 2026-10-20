@@ -1478,6 +1478,31 @@ kbd {
   }
 }
 
+@media (pointer: coarse) {
+  .hud-top-center .speed-compact {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 2px;
+    padding: 1px 12px 2px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 0.06em;
+    color: #eafcff;
+    background: rgba(4, 16, 27, 0.45);
+    border-radius: 3px;
+  }
+  .hud-top-center .speed-compact .unit {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: rgba(180, 226, 240, 0.75);
+  }
+  .hud-bottom-left {
+    display: none;
+  }
+}
+
 /* Compact landscape phones with the circuit rail */
 @media (orientation: landscape) and (max-height: 560px) {
   .garage {

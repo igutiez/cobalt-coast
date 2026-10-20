@@ -101,7 +101,7 @@ export class Kart {
   steer = 0
   driftAmount = 0
   driftBlend = 0
-  private boostPower = 1.5
+  private boostPower = 1.35
   driftCharge = 0
   driftTier = 0
   drifting = false
@@ -237,9 +237,10 @@ export class Kart {
     this.drifting = false
   }
 
-  useBoost(seconds: number, power = 1.5) {
+  useBoost(seconds: number, power = 1.35, kick = 0) {
     this.boostTime = Math.max(this.boostTime, seconds)
     this.boostPower = power
+    if (kick > 0) this.speed = Math.min(this.speed + kick, this.spec.stats.maxSpeed * power * 1.1)
   }
 
   activateShield() {
@@ -331,14 +332,15 @@ export class Kart {
 
     if (drifting) {
       this.driftAmount += (this.steer * 0.35 * this.driftBlend - this.driftAmount) * Math.min(1, dt * 7)
-      this.driftCharge += dt * (0.55 + Math.abs(this.steer) * 0.85)
+      this.driftCharge += dt * (0.8 + Math.abs(this.steer) * 1.1)
       this.speed *= 1 - 0.06 * dt
-      this.driftTier = this.driftCharge > 2.4 ? 3 : this.driftCharge > 1.3 ? 2 : this.driftCharge > 0.55 ? 1 : 0
+      this.driftTier = this.driftCharge > 2.2 ? 3 : this.driftCharge > 1.2 ? 2 : this.driftCharge > 0.5 ? 1 : 0
     } else {
       this.driftAmount += (0 - this.driftAmount) * Math.min(1, dt * 6)
-      if (this.driftCharge > 0.55 && this.speed > 6) {
-        const seconds = this.driftTier >= 3 ? 1.2 : this.driftTier === 2 ? 0.85 : 0.55
-        this.useBoost(seconds, 1.3)
+      if (this.driftCharge > 0.5 && this.speed > 6) {
+        const seconds = this.driftTier >= 3 ? 1.8 : this.driftTier === 2 ? 1.3 : 0.9
+        const kick = this.driftTier >= 3 ? 5.5 : this.driftTier === 2 ? 4 : 2.5
+        this.useBoost(seconds, 1.28, kick)
       }
       this.driftCharge = Math.max(0, this.driftCharge - dt * 1.4)
       this.driftTier = 0
