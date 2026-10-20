@@ -144,6 +144,7 @@ export class Game {
   private trackIndex = 0
   private pendingTrack: number | null = null
   private cameraMode: 'chase' | 'cockpit' = 'chase'
+  private readonly cupTracks = [0, 2, 4, 6, 8]
   private cup = { active: false, index: 0, points: {} as Record<string, number> }
 
   readonly initialCar: number
@@ -299,7 +300,7 @@ export class Game {
     this.cup = { active: true, index: 0, points: {} }
     this.audio.click()
     this.saveCup()
-    this.pendingTrack = this.trackIndex === 0 ? null : 0
+    this.pendingTrack = this.trackIndex === this.cupTracks[0] ? null : this.cupTracks[0]
     void this.startRace(0)
   }
 
@@ -318,13 +319,13 @@ export class Game {
 
   private cupResult(): CupResult | undefined {
     if (!this.cup.active) return undefined
-    const final = this.cup.index >= TRACKS.length - 1
+    const final = this.cup.index >= this.cupTracks.length - 1
     const mine = this.cup.points.YOU ?? 0
     const best = Math.max(mine, ...Object.values(this.cup.points))
     return {
       points: mine,
       total: mine,
-      next: final ? undefined : TRACKS[this.cup.index + 1].name,
+      next: final ? undefined : TRACKS[this.cupTracks[this.cup.index + 1]].name,
       final,
       champion: final && mine >= best,
     }
@@ -332,11 +333,11 @@ export class Game {
 
   private nextRace() {
     if (this.cup.active) {
-      if (this.cup.index < TRACKS.length - 1) {
+      if (this.cup.index < this.cupTracks.length - 1) {
         this.cup.index++
         this.saveCup()
         this.menu.hideResults()
-        this.pendingTrack = this.cup.index
+        this.pendingTrack = this.cupTracks[this.cup.index]
         void this.startRace(this.currentCar)
         return
       }

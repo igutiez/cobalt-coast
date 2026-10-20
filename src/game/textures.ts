@@ -182,8 +182,8 @@ export function checkerTexture(): THREE.Texture {
   return tex
 }
 
-export function bannerTexture(): THREE.Texture {
-  const key = 'banner'
+export function bannerTexture(title: string, subtitle: string): THREE.Texture {
+  const key = `banner:${title}`
   if (cache.has(key)) return cache.get(key)!
   const [c, ctx] = canvas(1024, 256)
   const g = ctx.createLinearGradient(0, 0, 1024, 256)
@@ -198,16 +198,26 @@ export function bannerTexture(): THREE.Texture {
     ctx.fillStyle = (i + 1) % 2 ? '#f2f7ff' : '#0c1a24'
     ctx.fillRect(i * 64, 238, 64, 18)
   }
-  ctx.font = '150px "Bebas Neue", Impact, sans-serif'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
+  let size = 150
+  ctx.font = `${size}px "Bebas Neue", Impact, sans-serif`
+  while (ctx.measureText(title).width > 930 && size > 58) {
+    size -= 6
+    ctx.font = `${size}px "Bebas Neue", Impact, sans-serif`
+  }
   ctx.fillStyle = 'rgba(47,242,223,0.25)'
-  ctx.fillText('COBALT COAST', 512, 134)
+  ctx.fillText(title, 512, 134)
   ctx.fillStyle = '#ffffff'
-  ctx.fillText('COBALT COAST', 512, 130)
-  ctx.font = '600 30px Rajdhani, sans-serif'
+  ctx.fillText(title, 512, 130)
+  let subSize = 30
+  ctx.font = `600 ${subSize}px Rajdhani, sans-serif`
+  while (ctx.measureText(subtitle).width > 930 && subSize > 16) {
+    subSize -= 2
+    ctx.font = `600 ${subSize}px Rajdhani, sans-serif`
+  }
   ctx.fillStyle = 'rgba(255,179,71,0.95)'
-  ctx.fillText('BEACH KART RACING', 512, 205)
+  ctx.fillText(subtitle, 512, 205)
   const tex = finish(c)
   cache.set(key, tex)
   return tex

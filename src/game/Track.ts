@@ -274,7 +274,7 @@ export class Track {
     gate.add(beam)
 
     const bannerGeo = new THREE.PlaneGeometry((this.halfWidth + 2.7) * 2 - 1.4, 2.2)
-    const bannerMat = new THREE.MeshBasicMaterial({ map: bannerTexture(), toneMapped: false })
+    const bannerMat = new THREE.MeshBasicMaterial({ map: bannerTexture(this.spec.name, this.spec.tagline), toneMapped: false })
     for (const s of [-1, 1]) {
       const banner = new THREE.Mesh(bannerGeo, bannerMat)
       banner.position.copy(beam.position).addScaledVector(node.tan, s * 0.37)

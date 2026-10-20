@@ -449,9 +449,21 @@ body {
    TRACK SELECT
    ============================================================ */
 .track-rail {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
   gap: 8px;
+  margin-bottom: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.track-rail::-webkit-scrollbar {
+  display: none;
+}
+.track-rail .track-card {
+  flex: 0 0 104px;
+  scroll-snap-align: start;
 }
 .track-card {
   position: relative;
@@ -1511,8 +1523,12 @@ kbd {
     overflow: hidden;
   }
   .track-rail {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 5px;
+    padding-bottom: 2px;
+    margin-bottom: 4px;
+  }
+  .track-rail .track-card {
+    flex-basis: 84px;
   }
   .track-card {
     padding: 4px 5px 5px;

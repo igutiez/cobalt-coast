@@ -53,6 +53,7 @@ export class World {
   private readonly theme: TrackTheme
   private readonly lowSpec: boolean
   private readonly ultra: boolean
+  private readonly flora: 'tropical' | 'sparse' | 'barren'
   private readonly shoreRadius = 405
 
   constructor(
@@ -66,6 +67,8 @@ export class World {
     this.theme = theme
     this.lowSpec = lowSpec
     this.ultra = ultra
+    const flora = theme.flora ?? 'tropical'
+    this.flora = flora
     const step = Math.max(1, Math.floor(track.nodes.length / (ultra ? 70 : lowSpec ? 120 : 220)))
     for (let i = 0; i < track.nodes.length; i += step) this.trackPointGrid.push(track.nodes[i])
 
@@ -367,7 +370,8 @@ export class World {
       color: 0xffffff,
     })
 
-    const positions = this.scatter(this.ultra ? 42 : this.lowSpec ? 70 : 120, 20, (_x, _z, h) => h > 1.4 && h < 12)
+    const palmCount = this.flora === 'barren' ? 0 : this.ultra ? 30 : this.lowSpec ? 50 : this.flora === 'sparse' ? 60 : 120
+    const positions = palmCount > 0 ? this.scatter(palmCount, 20, (_x, _z, h) => h > 1.4 && h < 12) : []
     const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, positions.length)
     const leaves = new THREE.InstancedMesh(leafGeo, leafMat, positions.length)
     trunks.castShadow = true
@@ -444,7 +448,8 @@ export class World {
     const poleMat = new THREE.MeshStandardMaterial({ color: 0xd9d4c8, roughness: 0.5, metalness: 0.4 })
     const canopy = new THREE.ConeGeometry(2.4, 1.05, 16, 1, true)
     const pole = new THREE.CylinderGeometry(0.055, 0.055, 2.6, 6)
-    const spots = this.scatter(this.ultra ? 8 : this.lowSpec ? 14 : 26, 30, (_x, _z, h) => h > 0.3 && h < 3.6)
+    const umbrellaCount = this.flora === 'tropical' ? (this.ultra ? 8 : this.lowSpec ? 14 : 26) : 0
+    const spots = umbrellaCount > 0 ? this.scatter(umbrellaCount, 30, (_x, _z, h) => h > 0.3 && h < 3.6) : []
     spots.forEach((pt, i) => {
       const g = new THREE.Group()
       const p = new THREE.Mesh(pole, poleMat)
@@ -461,7 +466,8 @@ export class World {
 
     const hutWall = new THREE.MeshStandardMaterial({ color: 0xe8d3ae, roughness: 0.9 })
     const hutRoof = new THREE.MeshStandardMaterial({ color: 0x8a5b34, roughness: 0.95 })
-    const hutSpots = this.scatter(this.ultra ? 2 : this.lowSpec ? 4 : 7, 46, (_x, _z, h) => h > 2 && h < 6)
+    const hutCount = this.flora === 'tropical' ? (this.ultra ? 2 : this.lowSpec ? 4 : 7) : 0
+    const hutSpots = hutCount > 0 ? this.scatter(hutCount, 46, (_x, _z, h) => h > 2 && h < 6) : []
     for (const pt of hutSpots) {
       const g = new THREE.Group()
       const wall = new THREE.Mesh(new THREE.BoxGeometry(6, 3.4, 5), hutWall)
