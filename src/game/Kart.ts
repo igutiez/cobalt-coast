@@ -95,10 +95,13 @@ export class Kart {
   readonly wheels: WheelSet
   readonly shieldMesh: THREE.Mesh
   readonly flames: THREE.Group
+  readonly brakeMats: THREE.MeshStandardMaterial[]
+  readonly driverParts: { steering: THREE.Object3D; arms: THREE.Mesh[] }
   readonly pos = new THREE.Vector3()
   yaw = 0
   speed = 0
   steer = 0
+  brakeInput = 0
   driftAmount = 0
   driftBlend = 0
   private boostPower = 1.35
@@ -143,6 +146,8 @@ export class Kart {
     this.body.add(built.root)
     this.wheels = built.wheels
     this.flames = built.flames
+    this.brakeMats = built.brakeMats
+    this.driverParts = built.driverParts
     this.group.add(this.body)
 
     this.shieldMesh = new THREE.Mesh(
@@ -291,6 +296,7 @@ export class Kart {
     }
 
     this.steer += (input.steer - this.steer) * Math.min(1, dt * 7.5)
+    this.brakeInput = input.brake ? 1 : 0
     const drifting = input.drift && this.speed > 11 && Math.abs(this.steer) > 0.3 && !spin && racing
     this.driftBlend += ((drifting ? 1 : 0) - this.driftBlend) * Math.min(1, dt * (drifting ? 8 : 5))
     this.drifting = drifting
@@ -428,6 +434,12 @@ export class Kart {
     const steerVis = this.steer * 0.42
     this.wheels.fl.parent!.rotation.y = steerVis
     this.wheels.fr.parent!.rotation.y = steerVis
+    this.driverParts.steering.rotation.set(-1.0, 0, -this.steer * 1.35)
+    this.driverParts.arms.forEach((arm, i) => {
+      arm.rotation.z = (i === 0 ? -1 : 1) * 0.16 + this.steer * 0.13
+      arm.rotation.x = -0.95 + Math.abs(this.steer) * 0.08
+    })
+    for (const mat of this.brakeMats) mat.emissiveIntensity = this.brakeInput > 0 ? 3.6 : 1.1
 
     this.shieldMesh.visible = this.shieldTime > 0
     if (this.shieldTime > 0) {
@@ -446,7 +458,13 @@ export class Kart {
   }
 }
 
-function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; flames: THREE.Group } {
+function buildKartModel(spec: KartSpec): {
+  root: THREE.Group
+  wheels: WheelSet
+  flames: THREE.Group
+  brakeMats: THREE.MeshStandardMaterial[]
+  driverParts: { steering: THREE.Object3D; arms: THREE.Mesh[] }
+} {
   const root = new THREE.Group()
   const bodyMat = new THREE.MeshPhysicalMaterial({
     color: spec.body,
@@ -564,6 +582,7 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
   root.add(seat)
 
   const driver = new THREE.Group()
+  const arms: THREE.Mesh[] = []
   const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.21, 0.3, 6, 12), suitMat)
   torso.position.set(0, 1.38, -0.36)
   torso.rotation.x = -0.14
@@ -580,12 +599,33 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
     arm.rotation.x = -0.95
     arm.rotation.z = s * 0.16
     driver.add(arm)
+    arms.push(arm)
   }
 
-  const steering = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.028, 8, 18), trimMat)
+  const steering = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.028, 10, 22), trimMat)
   steering.position.set(0, 1.38, 0.26)
   steering.rotation.x = -1.0
+  const steerHub = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.05, 10), chrome)
+  steerHub.rotation.x = Math.PI / 2
+  steerHub.position.z = 0.01
+  steering.add(steerHub)
+  for (let i = 0; i < 3; i++) {
+    const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.018, 0.02), chrome)
+    spoke.rotation.z = (i / 3) * Math.PI
+    steering.add(spoke)
+  }
   driver.add(steering)
+
+  for (const s of [-1, 1]) {
+    const belt = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.42, 0.02), new THREE.MeshStandardMaterial({ color: 0x121a20, roughness: 0.9 }))
+    belt.position.set(s * 0.11, 1.4, -0.14)
+    belt.rotation.z = s * 0.28
+    belt.rotation.x = -0.14
+    driver.add(belt)
+    const glove = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), new THREE.MeshStandardMaterial({ color: 0x1b242c, roughness: 0.7 }))
+    glove.position.set(s * 0.13, 1.36, 0.16)
+    driver.add(glove)
+  }
 
   const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.25, 20, 16), accentMat)
   helmet.position.set(0, 1.8, -0.34)
@@ -594,10 +634,16 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
   visor.position.copy(helmet.position)
   visor.rotation.x = 0.22
   driver.add(visor)
+  const helmetSpoiler = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.05, 0.1), accentMat)
+  helmetSpoiler.position.set(0, 1.86, -0.55)
+  helmetSpoiler.rotation.x = 0.35
+  driver.add(helmetSpoiler)
   if (spec.style === 'muscle') driver.position.y = -0.3
   if (spec.style === 'formula') driver.position.y = -0.12
   root.add(driver)
+  const driverParts = { steering, arms }
 
+  const brakeMats: THREE.MeshStandardMaterial[] = []
   const headlightMat = new THREE.MeshStandardMaterial({
     color: 0xfff4d6,
     emissive: 0xfff0c8,
@@ -608,10 +654,14 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
     const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), headlightMat)
     lamp.position.set(s * 0.36, 0.98, 1.46)
     root.add(lamp)
-    const tail = new THREE.Mesh(
-      new THREE.BoxGeometry(0.38, 0.09, 0.06),
-      new THREE.MeshStandardMaterial({ color: 0xff3344, emissive: 0xff1122, emissiveIntensity: 2.2, roughness: 0.4 }),
-    )
+    const brakeMat = new THREE.MeshStandardMaterial({
+      color: 0xff3344,
+      emissive: 0xff1122,
+      emissiveIntensity: 1.1,
+      roughness: 0.4,
+    })
+    brakeMats.push(brakeMat)
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.09, 0.06), brakeMat)
     tail.position.set(s * 0.46, 0.92, -1.66)
     root.add(tail)
   }
@@ -655,8 +705,8 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
     tire.rotation.z = Math.PI / 2
     const ring = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.94, radius * 0.1, 6, 22), tread)
     ring.rotation.y = Math.PI / 2
-    const rim = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.58, radius * 0.58, width + 0.03, 16), chrome)
-    rim.rotation.z = Math.PI / 2
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.56, radius * 0.055, 10, 28), chrome)
+    rim.rotation.y = Math.PI / 2
     const hub = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.2, radius * 0.2, width + 0.08, 10), accentMat)
     hub.rotation.z = Math.PI / 2
     spin.add(tire, ring, rim, hub)
@@ -675,7 +725,15 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
       spoke.rotation.x = (i / 5) * Math.PI
       spin.add(spoke)
     }
-    holder.add(spin)
+    const discMat = new THREE.MeshStandardMaterial({ color: 0x6a7076, roughness: 0.35, metalness: 0.85 })
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.5, radius * 0.5, 0.035, 26), discMat)
+    disc.rotation.z = Math.PI / 2
+    const caliper = new THREE.Mesh(
+      new THREE.BoxGeometry(0.06, radius * 0.26, radius * 0.16),
+      new THREE.MeshStandardMaterial({ color: 0xd83a2a, roughness: 0.35, metalness: 0.3 }),
+    )
+    caliper.position.set(0, radius * 0.32, 0)
+    holder.add(spin, disc, caliper)
     return { holder, spin }
   }
 
@@ -812,5 +870,5 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
     }
   })
 
-  return { root, wheels: { fl: fl.spin, fr: fr.spin, rl: rl.spin, rr: rr.spin }, flames }
+  return { root, wheels: { fl: fl.spin, fr: fr.spin, rl: rl.spin, rr: rr.spin }, flames, brakeMats, driverParts }
 }
