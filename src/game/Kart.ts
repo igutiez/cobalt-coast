@@ -289,7 +289,7 @@ export class Kart {
       this.speed *= 1 - 1.4 * dt
     }
 
-    this.steer += (input.steer - this.steer) * Math.min(1, dt * 9.5)
+    this.steer += (input.steer - this.steer) * Math.min(1, dt * 7.5)
     const drifting = input.drift && this.speed > 11 && Math.abs(this.steer) > 0.3 && !spin && racing
     this.driftBlend += ((drifting ? 1 : 0) - this.driftBlend) * Math.min(1, dt * (drifting ? 8 : 5))
     this.drifting = drifting
@@ -322,7 +322,7 @@ export class Kart {
       if (this.speed < 0) this.speed = 0
       const turnMul = 1 + 0.2 * this.driftBlend
       const highSpeed = THREE.MathUtils.clamp((this.speed - 16) / 24, 0, 1)
-      const turnRate = stats.turn * (0.98 - 0.38 * highSpeed) * turnMul
+      const turnRate = stats.turn * (0.98 - 0.42 * highSpeed) * turnMul
       this.yaw += this.steer * turnRate * dt
       if (Math.abs(this.steer) > 0.65 && this.speed > 24) {
         this.speed -= (this.speed - 24) * 0.4 * dt
