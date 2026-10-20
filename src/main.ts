@@ -12,6 +12,7 @@ declare global {
     __game?: Game
     __buildId?: string
     __checkUpdate?: () => Promise<void>
+    __forceUpdate?: () => Promise<void>
   }
 }
 
@@ -56,8 +57,28 @@ async function checkForUpdate() {
   }
 }
 
+async function hardUpdate() {
+  try {
+    const keys = await caches.keys()
+    await Promise.all(keys.map((key) => caches.delete(key)))
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(registrations.map((registration) => registration.unregister()))
+    }
+  } catch {
+    // Storage blocked: reloading still fetches the network copy.
+  }
+  location.reload()
+}
+
 async function main() {
   window.__buildId = __BUILD_ID__
+  window.__forceUpdate = hardUpdate
+  const badge = document.getElementById('build-badge')
+  if (badge) {
+    badge.textContent = `v ${__BUILD_ID__} · ACTUALIZAR`
+    badge.addEventListener('click', () => void hardUpdate())
+  }
   window.__checkUpdate = checkForUpdate
   window.addEventListener('error', (event) => {
     showFatal(`ERROR: ${event.message}`)
