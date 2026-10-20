@@ -1,6 +1,8 @@
 # Cobalt Coast
 
-Un racer arcade de buggies en la playa, jugable en el navegador e instalable como PWA. Inspirado en la fórmula de *Beach Buggy Racing 2*: tres vueltas, seis pilotos, cajas de objetos, derrapes con mini-turbo y un circuito tropical con mar, palmeras y puesta de sol.
+Un racer arcade de buggies en la playa, jugable en el navegador e instalable como PWA. Inspirado en la fórmula de *Beach Buggy Racing 2*: tres vueltas, seis pilotos, cajas de objetos, derrapes con mini-turbo, tres circuitos y modo copa con puntos.
+
+**Juega online:** https://igutiez.github.io/cobalt-coast/
 
 Todo el arte es procedural (geometría, texturas y audio generados en tiempo de ejecución). No hay assets externos ni conexión a red en partida.
 
@@ -42,7 +44,10 @@ Derrapa para cargar el mini-turbo: al soltar el derrape recibes un impulso propo
 
 ## Características
 
-- Circuito cerrado de ~1,1 km con peralte, pianos rojo/blanco, arco de salida y línea de meta a cuadros.
+- Tres circuitos con trazados y ambientes propios: **Cobalt Coast** (curvas abiertas, mediodía), **Laguna Twist** (ratonero, atardecer) y **Dune Sprint** (rectas largas, luz dura).
+- Copa de 3 carreras con puntos por posición (10-8-6-4-3-2) y campeón final.
+- Cuatro buggies con carrocería distinta (buggy, fórmula, muscle y rally), no solo cambio de color.
+- Circuito cerrado de ~1,1-1,3 km con peralte, pianos rojo/blanco, arco de salida y línea de meta a cuadros.
 - Física arcade propia: velocidad, inercia lateral, derrape con tres niveles de carga, fuera de pista, muros y colisiones entre karts.
 - Cinco rivales con IA de trazada, frenada por curvatura, uso de objetos y rubber-banding.
 - Objetos: misil con seguimiento, escudo, aceite y turbo, con partículas y sonido.
@@ -59,7 +64,8 @@ Derrapa para cargar el mini-turbo: al soltar el derrape recibes un impulso propo
 src/
   main.ts            arranque, PWA y pantalla de carga
   game/
-    Game.ts          orquestación, estados de carrera, IA, post-proceso
+    Game.ts          orquestación, estados de carrera, copa, IA, post-proceso
+    tracks.ts        definición de los tres circuitos y sus paletas
     Track.ts         spline del circuito, asfalto, pianos, arco de salida
     World.ts         cielo, océano, isla, palmeras, rocas, objetos de pista
     Kart.ts          modelo del buggy y física arcade

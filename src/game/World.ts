@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
-import { cloudTexture, palmFrondTexture, sandTexture } from './textures.ts'
+import { palmFrondTexture, sandTexture } from './textures.ts'
 import type { Track, TrackNode } from './Track.ts'
 import type { TrackTheme } from './tracks.ts'
 
@@ -50,7 +50,6 @@ export class World {
   private readonly waterMat: THREE.ShaderMaterial
   private readonly trackPointGrid: TrackNode[] = []
   private readonly terrain: THREE.Mesh
-  private readonly clouds: THREE.Mesh[] = []
   private readonly theme: TrackTheme
   private readonly shoreRadius = 405
 
@@ -83,7 +82,6 @@ export class World {
     this.buildIslands()
     this.buildTrackProps(track)
     this.buildGrandstand(track)
-    this.buildClouds()
     this.buildBushes()
 
     const hemi = new THREE.HemisphereLight(0xe6eef8, this.theme.ambient, 0.32)
@@ -517,31 +515,6 @@ export class World {
     tires.castShadow = true
     tires.receiveShadow = true
     this.group.add(tires)
-  }
-
-  private buildClouds() {
-    const tex = cloudTexture()
-    for (let i = 0; i < 16; i++) {
-      const w = 320 + Math.random() * 420
-      const h = w * (0.32 + Math.random() * 0.16)
-      const mat = new THREE.MeshBasicMaterial({
-        map: tex,
-        transparent: true,
-        opacity: 0.5 + Math.random() * 0.3,
-        depthWrite: false,
-        color: 0xfff6ea,
-        side: THREE.DoubleSide,
-        toneMapped: false,
-        alphaTest: 0.01,
-      })
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat)
-      const ang = Math.random() * Math.PI * 2
-      const dist = 700 + Math.random() * 1200
-      m.position.set(Math.cos(ang) * dist, 130 + Math.random() * 160, Math.sin(ang) * dist)
-      m.lookAt(0, m.position.y * 0.75, 0)
-      this.clouds.push(m)
-      this.group.add(m)
-    }
   }
 
   private buildBushes() {

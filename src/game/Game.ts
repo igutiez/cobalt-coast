@@ -5,6 +5,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js'
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js'
 import { Track } from './Track.ts'
 import { World } from './World.ts'
 import { Kart, KART_SPECS, type KartInput, type KartSpec } from './Kart.ts'
@@ -116,6 +117,7 @@ export class Game {
   private readonly bloom: UnrealBloomPass
   private readonly grade: ShaderPass
   private readonly smaa: SMAAPass
+  private readonly gtao: GTAOPass
   private karts: Kart[] = []
   private ai: AIState[] = []
   private player!: Kart
@@ -184,6 +186,10 @@ export class Game {
     const size = new THREE.Vector2(window.innerWidth, window.innerHeight)
     this.composer = new EffectComposer(this.renderer)
     this.composer.addPass(new RenderPass(this.scene, this.cameraRig.camera))
+    this.gtao = new GTAOPass(this.scene, this.cameraRig.camera, window.innerWidth, window.innerHeight)
+    this.gtao.output = GTAOPass.OUTPUT.Default
+    this.gtao.blendIntensity = 0.85
+    this.composer.addPass(this.gtao)
     this.bloom = new UnrealBloomPass(size, 0.22, 0.45, 1.05)
     this.composer.addPass(this.bloom)
     this.composer.addPass(new OutputPass())
@@ -437,6 +443,7 @@ export class Game {
     this.composer.setPixelRatio(ratio)
     this.world.sunLight.castShadow = q !== 'low'
     this.bloom.enabled = q !== 'low'
+    this.gtao.enabled = q === 'high'
     this.smaa.enabled = q !== 'low'
     this.grade.enabled = q !== 'low'
     this.onResize()
@@ -449,6 +456,7 @@ export class Game {
     this.composer.setSize(w, h)
     this.cameraRig.resize(w / h)
     this.bloom.setSize(w, h)
+    this.gtao.setSize(w, h)
     this.smaa.setSize(w, h)
   }
 

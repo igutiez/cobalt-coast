@@ -293,6 +293,46 @@ export function boardTexture(label: string, a: string, b: string): THREE.Texture
   return tex
 }
 
+export function tireTexture(): THREE.Texture {
+  const key = 'tire'
+  if (cache.has(key)) return cache.get(key)!
+  const [c, ctx] = canvas(512, 128)
+  ctx.fillStyle = '#15181b'
+  ctx.fillRect(0, 0, 512, 128)
+  for (let i = 0; i < 32; i++) {
+    const x = (i / 32) * 512
+    ctx.fillStyle = '#0a0c0e'
+    ctx.fillRect(x, 0, 7, 128)
+    ctx.fillStyle = 'rgba(255,255,255,0.05)'
+    ctx.fillRect(x + 9, 0, 3, 128)
+  }
+  for (const y of [4, 120]) {
+    ctx.fillStyle = 'rgba(255,255,255,0.06)'
+    ctx.fillRect(0, y, 512, 4)
+  }
+  const tex = finish(c, [1, 1])
+  cache.set(key, tex)
+  return tex
+}
+
+export function paintNormal(): THREE.Texture {
+  const key = 'paintNormal'
+  if (cache.has(key)) return cache.get(key)!
+  const [c, ctx] = canvas(256)
+  ctx.fillStyle = '#8080ff'
+  ctx.fillRect(0, 0, 256, 256)
+  for (let i = 0; i < 22000; i++) {
+    const x = Math.random() * 256
+    const y = Math.random() * 256
+    ctx.fillStyle = `rgb(${128 + (Math.random() - 0.5) * 14},${128 + (Math.random() - 0.5) * 14},255)`
+    ctx.fillRect(x, y, 1, 1)
+  }
+  const tex = finish(c, [4, 4])
+  tex.colorSpace = THREE.NoColorSpace
+  cache.set(key, tex)
+  return tex
+}
+
 export function softDotTexture(): THREE.Texture {
   const key = 'dot'
   if (cache.has(key)) return cache.get(key)!

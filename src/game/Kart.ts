@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
-import { numberTexture, shadowTexture } from './textures.ts'
+import { numberTexture, paintNormal, shadowTexture, tireTexture } from './textures.ts'
 import type { NearestHit, Track } from './Track.ts'
 import { forwardFromYaw, rightFromYaw } from './Track.ts'
 import type { ItemKind } from './textures.ts'
@@ -437,6 +437,8 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
     metalness: 0.18,
     clearcoat: 1,
     clearcoatRoughness: 0.08,
+    normalMap: paintNormal(),
+    normalScale: new THREE.Vector2(0.06, 0.06),
   })
   const accentMat = new THREE.MeshPhysicalMaterial({
     color: spec.accent,
@@ -445,7 +447,7 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
     clearcoat: 0.9,
   })
   const trimMat = new THREE.MeshStandardMaterial({ color: spec.trim, roughness: 0.48, metalness: 0.5 })
-  const rubber = new THREE.MeshStandardMaterial({ color: 0x101316, roughness: 0.95, metalness: 0.02 })
+  const rubberTread = new THREE.MeshStandardMaterial({ map: tireTexture(), color: 0xffffff, roughness: 0.92, metalness: 0.02 })
   const tread = new THREE.MeshStandardMaterial({ color: 0x2a2f33, roughness: 0.9, metalness: 0.05 })
   const chrome = new THREE.MeshStandardMaterial({ color: 0xdbe6ec, roughness: 0.16, metalness: 1 })
   const suitMat = new THREE.MeshStandardMaterial({ color: 0x202c36, roughness: 0.8 })
@@ -544,36 +546,40 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
   seat.rotation.x = -0.16
   root.add(seat)
 
+  const driver = new THREE.Group()
   const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.21, 0.3, 6, 12), suitMat)
   torso.position.set(0, 1.38, -0.36)
   torso.rotation.x = -0.14
-  root.add(torso)
+  driver.add(torso)
 
   const shoulders = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.34, 4, 8), accentMat)
   shoulders.position.set(0, 1.47, -0.38)
   shoulders.rotation.z = Math.PI / 2
-  root.add(shoulders)
+  driver.add(shoulders)
 
   for (const s of [-1, 1]) {
     const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.34, 4, 8), suitMat)
     arm.position.set(s * 0.19, 1.4, 0.02)
     arm.rotation.x = -0.95
     arm.rotation.z = s * 0.16
-    root.add(arm)
+    driver.add(arm)
   }
 
   const steering = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.028, 8, 18), trimMat)
   steering.position.set(0, 1.38, 0.26)
   steering.rotation.x = -1.0
-  root.add(steering)
+  driver.add(steering)
 
   const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.25, 20, 16), accentMat)
   helmet.position.set(0, 1.8, -0.34)
-  root.add(helmet)
+  driver.add(helmet)
   const visor = new THREE.Mesh(new THREE.SphereGeometry(0.255, 20, 16, 0, Math.PI * 2, 0.72, 0.6), glassMat)
   visor.position.copy(helmet.position)
   visor.rotation.x = 0.22
-  root.add(visor)
+  driver.add(visor)
+  if (spec.style === 'muscle') driver.position.y = -0.3
+  if (spec.style === 'formula') driver.position.y = -0.12
+  root.add(driver)
 
   const headlightMat = new THREE.MeshStandardMaterial({
     color: 0xfff4d6,
@@ -628,7 +634,7 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
   const makeWheel = (radius: number, width: number) => {
     const holder = new THREE.Group()
     const spin = new THREE.Group()
-    const tire = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, width, 22), rubber)
+    const tire = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, width, 24), rubberTread)
     tire.rotation.z = Math.PI / 2
     const ring = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.94, radius * 0.1, 6, 22), tread)
     ring.rotation.y = Math.PI / 2
@@ -637,6 +643,16 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
     const hub = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.2, radius * 0.2, width + 0.08, 10), accentMat)
     hub.rotation.z = Math.PI / 2
     spin.add(tire, ring, rim, hub)
+    for (const side of [-1, 1]) {
+      const lip = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.52, radius * 0.035, 6, 20), chrome)
+      lip.rotation.y = Math.PI / 2
+      lip.position.x = side * (width / 2 + 0.015)
+      spin.add(lip)
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.1, radius * 0.1, 0.04, 10), trimMat)
+      cap.rotation.z = Math.PI / 2
+      cap.position.x = side * (width / 2 + 0.04)
+      spin.add(cap)
+    }
     for (let i = 0; i < 5; i++) {
       const spoke = new THREE.Mesh(new THREE.BoxGeometry(width + 0.05, radius * 0.09, radius * 0.72), trimMat)
       spoke.rotation.x = (i / 5) * Math.PI
@@ -725,6 +741,36 @@ function buildKartModel(spec: KartSpec): { root: THREE.Group; wheels: WheelSet; 
       mud.position.set(s * 0.98, 0.45, -1.6)
       root.add(mud)
     }
+  }
+
+  const ventMat = new THREE.MeshStandardMaterial({ color: 0x0d1216, roughness: 0.6, metalness: 0.4 })
+  for (const s of [-1, 1]) {
+    for (let i = 0; i < 3; i++) {
+      const slat = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.022, 0.52), ventMat)
+      slat.position.set(s * 0.99, 0.58 + i * 0.07, 0.02)
+      root.add(slat)
+    }
+    const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.018, 0.2, 6), trimMat)
+    stalk.position.set(s * 0.6, 1.52, 0.3)
+    stalk.rotation.z = s * 0.7
+    root.add(stalk)
+    const mirror = new THREE.Mesh(rbox(0.17, 0.1, 0.05, 0.02), accentMat)
+    mirror.position.set(s * 0.7, 1.58, 0.3)
+    mirror.rotation.y = s * 0.25
+    root.add(mirror)
+    const belt = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.02), ventMat)
+    belt.position.set(s * 0.13, 1.3, -0.68)
+    belt.rotation.x = -0.18
+    root.add(belt)
+  }
+  const chin = new THREE.Mesh(rbox(0.16, 0.06, 0.05, 0.02), ventMat)
+  chin.position.set(0, 1.63, -0.1)
+  root.add(chin)
+  const lineMat = new THREE.MeshStandardMaterial({ color: 0x2a2018, roughness: 0.7 })
+  for (const s of [-1, 1]) {
+    const seam = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.04, 1.1), lineMat)
+    seam.position.set(s * 0.78, 0.9, 0.55)
+    root.add(seam)
   }
 
   const flames = new THREE.Group()
