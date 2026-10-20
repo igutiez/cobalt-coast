@@ -1418,6 +1418,22 @@ kbd {
   .hud-bottom-left {
     display: none;
   }
+  .hud-top-center .speed-compact {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 2px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.06em;
+    color: #eafcff;
+  }
+  .speed-compact .unit {
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    color: rgba(180, 226, 240, 0.7);
+  }
   .hud-bottom-center {
     bottom: 8px;
   }
@@ -1720,4 +1736,8 @@ kbd {
   letter-spacing: 0.18em;
   color: #eafcff;
   animation: screen-in 0.25s ease both;
+}
+
+.speed-compact {
+  display: none;
 }

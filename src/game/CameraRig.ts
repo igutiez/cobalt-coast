@@ -70,13 +70,15 @@ export class CameraRig {
     const fwd = kart.forward
     const head = kart.pos.clone().addScaledVector(UP, 1.98).addScaledVector(fwd, 0.25)
     this.camera.position.lerp(head, 1 - Math.exp(-dt * 30))
+    const driftYaw = -kart.driftAmount * 0.6
+    const lookDir = fwd.clone().applyAxisAngle(UP, driftYaw)
     const look = kart.pos
       .clone()
-      .addScaledVector(fwd, 24)
+      .addScaledVector(lookDir, 24)
       .addScaledVector(UP, 1.9 + this.heightBias * 0.25)
     this.smoothLook.lerp(look, 1 - Math.exp(-dt * 16))
     this.camera.lookAt(this.smoothLook)
-    const roll = THREE.MathUtils.clamp(-kart.driftAmount * 0.22, -0.12, 0.12)
+    const roll = THREE.MathUtils.clamp(-kart.driftAmount * 0.55, -0.22, 0.22)
     this.camera.rotateZ(roll)
     this.fov += (78 - this.fov) * Math.min(1, dt * 5)
     this.camera.fov = this.fov

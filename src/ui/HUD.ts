@@ -18,6 +18,7 @@ export class HUD {
   private readonly timer = document.getElementById('race-timer')!
   private readonly lapTime = document.getElementById('lap-time')!
   private readonly speedo = document.getElementById('speedo') as HTMLCanvasElement
+  private readonly speedCompact = document.getElementById('speed-compact-value')
   private readonly speedoCtx = this.speedo.getContext('2d')!
   private readonly minimap = document.getElementById('minimap') as HTMLCanvasElement
   private readonly minimapCtx = this.minimap.getContext('2d')!
@@ -157,6 +158,7 @@ export class HUD {
     const cy = w / 2 + 10
     const r = 96
     const kmh = Math.min(170, Math.max(0, player.speed * 3.6))
+    if (this.speedCompact) this.speedCompact.textContent = String(Math.round(kmh))
     ctx.clearRect(0, 0, w, w)
 
     const start = Math.PI * 0.78
