@@ -34,7 +34,7 @@ export const KART_SPECS: KartSpec[] = [
     accent: 0x2ff2df,
     trim: 0x14212b,
     style: 'buggy',
-    stats: { maxSpeed: 38, accel: 19, turn: 2.15, grip: 1 },
+    stats: { maxSpeed: 35.5, accel: 19, turn: 2.15, grip: 1 },
   },
   {
     id: 'reef',
@@ -45,7 +45,7 @@ export const KART_SPECS: KartSpec[] = [
     accent: 0xffd166,
     trim: 0x101a2b,
     style: 'formula',
-    stats: { maxSpeed: 40.5, accel: 16.5, turn: 1.92, grip: 0.94 },
+    stats: { maxSpeed: 37.5, accel: 16.5, turn: 1.92, grip: 0.94 },
   },
   {
     id: 'mango',
@@ -56,7 +56,7 @@ export const KART_SPECS: KartSpec[] = [
     accent: 0xff4d6d,
     trim: 0x231a10,
     style: 'muscle',
-    stats: { maxSpeed: 36.8, accel: 22, turn: 2.25, grip: 1.02 },
+    stats: { maxSpeed: 34.5, accel: 22, turn: 2.25, grip: 1.02 },
   },
   {
     id: 'kelp',
@@ -67,7 +67,7 @@ export const KART_SPECS: KartSpec[] = [
     accent: 0xeafff8,
     trim: 0x0d1f18,
     style: 'rally',
-    stats: { maxSpeed: 37.4, accel: 18, turn: 2.42, grip: 1.08 },
+    stats: { maxSpeed: 35, accel: 18, turn: 2.42, grip: 1.08 },
   },
 ]
 
@@ -286,29 +286,39 @@ export class Kart {
       this.speed *= 1 - 1.4 * dt
     }
 
-    this.steer += (input.steer - this.steer) * Math.min(1, dt * 8.5)
+    this.steer += (input.steer - this.steer) * Math.min(1, dt * 9.5)
     const drifting = input.drift && this.speed > 9 && Math.abs(this.steer) > 0.2 && !spin && racing
     this.drifting = drifting
 
     let targetSpeed = stats.maxSpeed * this.speedScale
-    if (this.offroad) targetSpeed *= 0.58
+    if (this.offroad) targetSpeed *= 0.65
     if (this.boostTime > 0) {
       targetSpeed *= 1.5
       this.boostTime = Math.max(0, this.boostTime - dt)
     }
-    if (input.brake) targetSpeed = Math.min(targetSpeed, 9)
+
 
     if (!spin) {
       const accel = (this.boostTime > 0 ? stats.accel * 2.2 : stats.accel) * (this.offroad ? 0.6 : 1)
-      if (this.speed < targetSpeed) {
+      if (input.brake) {
+        this.speed = Math.max(0, this.speed - 26 * dt)
+      } else if (this.speed < targetSpeed) {
         this.speed += accel * dt * (1 - this.speed / (targetSpeed * 1.12))
       } else {
-        this.speed -= (input.brake ? 34 : 9) * dt
+        this.speed -= 9 * dt
+      }
+      if (!input.brake && !drifting && this.speed > 10) {
+        const ahead = Math.round(14 + this.speed * 1.0)
+        const curv = Math.abs(track.sample(this.index + ahead).curv)
+        if (curv > 0.0015) {
+          const safe = Math.sqrt(13 / curv)
+          if (this.speed > safe) this.speed -= (this.speed - safe) * 2.2 * dt
+        }
       }
       if (this.speed < 0) this.speed = 0
-      const turnMul = drifting ? 1.55 : 1
+      const turnMul = drifting ? 1.35 : 1
       const highSpeed = THREE.MathUtils.clamp((this.speed - 16) / 24, 0, 1)
-      const turnRate = stats.turn * (0.98 - 0.3 * highSpeed) * turnMul
+      const turnRate = stats.turn * (0.98 - 0.38 * highSpeed) * turnMul
       this.yaw += this.steer * turnRate * dt
       if (Math.abs(this.steer) > 0.65 && this.speed > 24) {
         this.speed -= (this.speed - 24) * 0.4 * dt
@@ -316,7 +326,7 @@ export class Kart {
     }
 
     if (drifting) {
-      this.driftAmount += (this.steer * 0.55 - this.driftAmount) * Math.min(1, dt * 8)
+      this.driftAmount += (this.steer * 0.4 - this.driftAmount) * Math.min(1, dt * 8)
       this.driftCharge += dt * (0.55 + Math.abs(this.steer) * 0.85)
       this.speed *= 1 - 0.12 * dt
       this.driftTier = this.driftCharge > 2.4 ? 3 : this.driftCharge > 1.3 ? 2 : this.driftCharge > 0.55 ? 1 : 0
@@ -332,7 +342,7 @@ export class Kart {
 
     const fwd = this.forward
     const right = this.right
-    const slip = -this.driftAmount * this.speed * 0.55
+    const slip = -this.driftAmount * this.speed * 0.4
     this.pos.addScaledVector(fwd, this.speed * dt)
     this.pos.addScaledVector(right, slip * dt)
 

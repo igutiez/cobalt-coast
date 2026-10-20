@@ -1640,3 +1640,53 @@ kbd {
     margin-top: 3px;
   }
 }
+
+.update-banner {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 220;
+  padding: 10px 18px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: #04101b;
+  background: linear-gradient(100deg, #2ff2df, #7dfcff);
+  border: none;
+  border-radius: 3px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.fatal {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(120% 90% at 50% 110%, rgba(255, 122, 60, 0.18), transparent 55%),
+    linear-gradient(180deg, #04101b 0%, #071c2c 60%, #0b2a3c 100%);
+}
+.fatal-box {
+  width: min(420px, 86vw);
+  text-align: center;
+}
+.fatal-box h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 44px;
+  letter-spacing: 0.08em;
+  margin: 0 0 8px;
+  color: #ffe6bd;
+}
+.fatal-box p {
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(220, 245, 252, 0.8);
+  margin: 0 0 18px;
+}
+.fatal-box .btn {
+  width: 100%;
+  padding: 14px;
+  text-align: center;
+}

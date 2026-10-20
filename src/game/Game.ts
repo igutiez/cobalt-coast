@@ -128,6 +128,7 @@ export class Game {
   private totalLaps = 3
   private quality: Quality = 'high'
   private gtaoSupported = false
+  private readonly lowSpec = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0
   private lastBoost = false
   private driftClock = 0
   private readonly groundAt = (x: number, z: number) => this.world.groundHeight(x, z)
@@ -158,7 +159,7 @@ export class Game {
     this.cameraRig.mobile = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0
     this.track = new Track(TRACKS[0])
     this.scene.add(this.track.group)
-    this.world = new World(this.track, this.renderer, this.scene, TRACKS[0].theme)
+    this.world = new World(this.track, this.renderer, this.scene, TRACKS[0].theme, this.lowSpec)
     this.scene.add(this.world.group)
     const fill = new THREE.DirectionalLight(0xbfe4ff, 0.55)
     fill.position.set(0, 6, 10)
@@ -219,6 +220,7 @@ export class Game {
       const boot = document.getElementById('boot-status')
       if (boot) boot.textContent = 'CONTEXTO GRÁFICO PERDIDO · RECARGA LA PÁGINA'
       document.getElementById('boot')?.classList.remove('done')
+      document.getElementById('fatal')?.classList.remove('hidden')
     })
     try {
       if (localStorage.getItem('cobalt-camera-mode') === 'cockpit') this.cameraMode = 'cockpit'
@@ -279,7 +281,7 @@ export class Game {
     const spec = TRACKS[this.trackIndex]
     this.track = new Track(spec)
     this.scene.add(this.track.group)
-    this.world = new World(this.track, this.renderer, this.scene, spec.theme)
+    this.world = new World(this.track, this.renderer, this.scene, spec.theme, this.lowSpec)
     this.scene.add(this.world.group)
     this.items = new Items(this.track, this.effects)
     this.scene.add(this.items.group)
@@ -392,7 +394,7 @@ export class Game {
       accent: AI_COLORS[i][1],
       trim: 0x141b22,
       stats: {
-        maxSpeed: 39.4 + Math.random() * 2.4,
+        maxSpeed: 35 + Math.random() * 1.6,
         accel: 19.5 + Math.random() * 2.4,
         turn: 2.2 + Math.random() * 0.25,
         grip: 1,
@@ -413,7 +415,7 @@ export class Game {
     this.countdown = 3.9
 
     const player = new Kart(KART_SPECS[carIndex], true, this.track, 3)
-    player.speedScale = this.input.isTouch ? 0.9 : 1
+    player.speedScale = this.input.isTouch ? 0.92 : 1
     const povButton = document.getElementById('btn-pov')
     if (povButton) povButton.textContent = this.cameraMode === 'cockpit' ? 'CHASE' : 'POV'
     this.cameraRig.mode = this.cameraMode
@@ -426,7 +428,7 @@ export class Game {
     const slots = [0, 1, 2, 4, 5]
     specs.forEach((spec, i) => {
       const kart = new Kart(spec, false, this.track, slots[i])
-      kart.speedScale = this.input.isTouch ? 0.94 : 1
+      kart.speedScale = this.input.isTouch ? 0.97 : 1
       this.scene.add(kart.group)
       this.karts.push(kart)
       this.ai.push({ kart, itemTimer: 3 + Math.random() * 5, lane: 0, laneTarget: 0 })
@@ -625,6 +627,20 @@ export class Game {
       })
   }
 
+  private stuckTimer = 0
+
+  private checkStuck(dt: number) {
+    if (!this.player || this.player.finished || this.state !== 'race') return
+    const off = Math.abs(this.track.nearest(this.player.pos, this.player.hint).lateral) > this.track.halfWidth + 1.5
+    if (off && this.player.speed < 4) this.stuckTimer += dt
+    else this.stuckTimer = 0
+    if (this.stuckTimer > 2.2) {
+      this.player.respawn(this.track)
+      this.stuckTimer = 0
+      this.cameraRig.kick(0.3)
+    }
+  }
+
   private updatePlayerEffects(dt: number, now: number) {
     const k = this.player
     if (!k) return
@@ -747,6 +763,7 @@ export class Game {
       }
 
       this.checkCollisions(dt)
+      this.checkStuck(dt)
       const cam = this.cameraRig.camera
       for (const k of this.karts) {
         if (k !== this.player) k.group.visible = k.pos.distanceTo(cam.position) > 3.4

@@ -51,11 +51,19 @@ export class World {
   private readonly trackPointGrid: TrackNode[] = []
   private readonly terrain: THREE.Mesh
   private readonly theme: TrackTheme
+  private readonly lowSpec: boolean
   private readonly shoreRadius = 405
 
-  constructor(track: Track, renderer: THREE.WebGLRenderer, scene: THREE.Scene, theme: TrackTheme) {
+  constructor(
+    track: Track,
+    renderer: THREE.WebGLRenderer,
+    scene: THREE.Scene,
+    theme: TrackTheme,
+    lowSpec = false,
+  ) {
     this.theme = theme
-    const step = Math.max(1, Math.floor(track.nodes.length / 220))
+    this.lowSpec = lowSpec
+    const step = Math.max(1, Math.floor(track.nodes.length / (lowSpec ? 120 : 220)))
     for (let i = 0; i < track.nodes.length; i += step) this.trackPointGrid.push(track.nodes[i])
 
     const sun = new THREE.Vector3().setFromSphericalCoords(
@@ -91,7 +99,7 @@ export class World {
     this.sunLight = new THREE.DirectionalLight(this.theme.sunLight, 3.0)
     this.sunLight.position.copy(this.sunDir).multiplyScalar(180)
     this.sunLight.castShadow = true
-    this.sunLight.shadow.mapSize.set(2048, 2048)
+    this.sunLight.shadow.mapSize.set(this.lowSpec ? 1024 : 2048, this.lowSpec ? 1024 : 2048)
     this.sunLight.shadow.camera.near = 20
     this.sunLight.shadow.camera.far = 420
     const sc = this.sunLight.shadow.camera as THREE.OrthographicCamera
@@ -105,8 +113,8 @@ export class World {
     this.group.add(this.sunLight)
     this.group.add(this.sunLight.target)
 
-    scene.environment = this.buildEnvironment(renderer)
-    scene.environmentIntensity = 0.12
+    scene.environment = this.lowSpec ? null : this.buildEnvironment(renderer)
+    scene.environmentIntensity = this.lowSpec ? 0 : 0.12
     scene.fog = new THREE.FogExp2(this.theme.fog, 0.00011)
   }
 
@@ -200,7 +208,7 @@ export class World {
 
   private buildTerrain(): THREE.Mesh {
     const size = 1500
-    const seg = 200
+    const seg = this.lowSpec ? 140 : 200
     const geo = new THREE.PlaneGeometry(size, size, seg, seg)
     geo.rotateX(-Math.PI / 2)
     const pos = geo.attributes.position as THREE.BufferAttribute
@@ -356,7 +364,7 @@ export class World {
       color: 0xffffff,
     })
 
-    const positions = this.scatter(120, 20, (_x, _z, h) => h > 1.4 && h < 12)
+    const positions = this.scatter(this.lowSpec ? 70 : 120, 20, (_x, _z, h) => h > 1.4 && h < 12)
     const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, positions.length)
     const leaves = new THREE.InstancedMesh(leafGeo, leafMat, positions.length)
     trunks.castShadow = true
@@ -408,7 +416,7 @@ export class World {
     }
     geo.computeVertexNormals()
     const mat = new THREE.MeshStandardMaterial({ color: 0x7b7168, roughness: 0.92, metalness: 0.02, flatShading: true })
-    const spots = this.scatter(70, 24, (_x, _z, h) => h > 0.2)
+    const spots = this.scatter(this.lowSpec ? 40 : 70, 24, (_x, _z, h) => h > 0.2)
     const inst = new THREE.InstancedMesh(geo, mat, spots.length)
     const m = new THREE.Matrix4()
     const q = new THREE.Quaternion()
@@ -433,7 +441,7 @@ export class World {
     const poleMat = new THREE.MeshStandardMaterial({ color: 0xd9d4c8, roughness: 0.5, metalness: 0.4 })
     const canopy = new THREE.ConeGeometry(2.4, 1.05, 16, 1, true)
     const pole = new THREE.CylinderGeometry(0.055, 0.055, 2.6, 6)
-    const spots = this.scatter(26, 30, (_x, _z, h) => h > 0.3 && h < 3.6)
+    const spots = this.scatter(this.lowSpec ? 14 : 26, 30, (_x, _z, h) => h > 0.3 && h < 3.6)
     spots.forEach((pt, i) => {
       const g = new THREE.Group()
       const p = new THREE.Mesh(pole, poleMat)
@@ -450,7 +458,7 @@ export class World {
 
     const hutWall = new THREE.MeshStandardMaterial({ color: 0xe8d3ae, roughness: 0.9 })
     const hutRoof = new THREE.MeshStandardMaterial({ color: 0x8a5b34, roughness: 0.95 })
-    const hutSpots = this.scatter(7, 46, (_x, _z, h) => h > 2 && h < 6)
+    const hutSpots = this.scatter(this.lowSpec ? 4 : 7, 46, (_x, _z, h) => h > 2 && h < 6)
     for (const pt of hutSpots) {
       const g = new THREE.Group()
       const wall = new THREE.Mesh(new THREE.BoxGeometry(6, 3.4, 5), hutWall)
@@ -527,7 +535,7 @@ export class World {
     }
     geo.computeVertexNormals()
     const mat = new THREE.MeshStandardMaterial({ color: 0x3f7a35, roughness: 0.9, flatShading: true })
-    const spots = this.scatter(90, 16, (_x, _z, h) => h > 1.2 && h < 9)
+    const spots = this.scatter(this.lowSpec ? 50 : 90, 16, (_x, _z, h) => h > 1.2 && h < 9)
     const inst = new THREE.InstancedMesh(geo, mat, spots.length)
     const m = new THREE.Matrix4()
     const q = new THREE.Quaternion()

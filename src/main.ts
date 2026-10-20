@@ -24,10 +24,12 @@ function updateOrientation() {
 
 function showFatal(message: string) {
   const boot = document.getElementById('boot')
-  if (!boot) return
-  boot.classList.remove('done')
-  const status = document.getElementById('boot-status')
-  if (status) status.textContent = message
+  if (boot) {
+    boot.classList.remove('done')
+    const status = document.getElementById('boot-status')
+    if (status) status.textContent = message
+  }
+  showFatalOverlay(message)
 }
 
 const VERSION_KEY = 'cobalt-build-id'
@@ -41,35 +43,40 @@ async function checkForUpdate() {
     if (!data.id || data.id === __BUILD_ID__) return
     if (sessionStorage.getItem(VERSION_KEY) === data.id) return
     sessionStorage.setItem(VERSION_KEY, data.id)
-    const toast = document.createElement('div')
-    toast.className = 'update-toast'
-    toast.textContent = 'NUEVA VERSIÓN · ACTUALIZANDO…'
-    document.body.appendChild(toast)
-    const keys = await caches.keys()
-    await Promise.all(keys.map((key) => caches.delete(key)))
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations()
-      await Promise.all(registrations.map((registration) => registration.unregister()))
-    }
-    window.setTimeout(() => location.reload(), 500)
+    showUpdateBanner()
   } catch {
     // Offline or blocked storage: keep playing the cached version.
   }
+}
+
+function showFatalOverlay(message: string) {
+  const fatal = document.getElementById('fatal')
+  const text = document.getElementById('fatal-text')
+  if (fatal) fatal.classList.remove('hidden')
+  if (text) text.textContent = message
 }
 
 async function hardUpdate() {
   try {
     const keys = await caches.keys()
     await Promise.all(keys.map((key) => caches.delete(key)))
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations()
-      await Promise.all(registrations.map((registration) => registration.unregister()))
-    }
   } catch {
-    // Storage blocked: reloading still fetches the network copy.
+    // Storage blocked: the cache-busted navigation still fetches the network copy.
   }
-  location.reload()
+  location.replace(`${location.pathname}?u=${Date.now()}`)
 }
+
+function showUpdateBanner() {
+  const banner = document.getElementById('update-banner')
+  if (!banner) return
+  banner.classList.remove('hidden')
+  banner.onclick = () => void hardUpdate()
+}
+
+document.getElementById('fatal-reload')?.addEventListener('click', () => location.reload())
+window.addEventListener('webglcontextlost', () => {
+  showFatalOverlay('El navegador perdió el contexto gráfico. Pulsa RECARGAR.')
+})
 
 async function main() {
   window.__buildId = __BUILD_ID__
@@ -93,6 +100,7 @@ async function main() {
   status.textContent = 'SHAPING THE COASTLINE'
   await new Promise((r) => setTimeout(r, 60))
   fill.style.width = '46%'
+  await new Promise((r) => requestAnimationFrame(() => r(null)))
 
   let game: Game
   try {
@@ -115,6 +123,7 @@ async function main() {
   }
   if (!game.hasRendered) {
     status.textContent = `NO SE PUDO DIBUJAR · ${game.webglInfo}`
+    showFatalOverlay(`WebGL no ha dibujado. ${game.webglInfo}`)
     return
   }
 
