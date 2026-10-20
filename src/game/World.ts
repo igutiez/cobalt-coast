@@ -425,7 +425,7 @@ export class World {
     }
     geo.computeVertexNormals()
     const mat = new THREE.MeshStandardMaterial({ color: 0x7b7168, roughness: 0.92, metalness: 0.02, flatShading: true })
-    const spots = this.scatter(this.ultra ? 22 : this.lowSpec ? 40 : 70, 24, (_x, _z, h) => h > 0.2)
+    const spots = this.scatter(this.ultra ? 34 : this.lowSpec ? 56 : 96, 9, (_x, _z, h) => h > 0.2)
     const inst = new THREE.InstancedMesh(geo, mat, spots.length)
     const m = new THREE.Matrix4()
     const q = new THREE.Quaternion()

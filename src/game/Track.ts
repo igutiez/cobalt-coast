@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { asphaltNormal, bannerTexture, checkerTexture, roadTexture, sandTexture } from './textures.ts'
+import { asphaltNormal, bannerTexture, barrierTexture, checkerTexture, guardrailTexture, roadTexture, sandTexture } from './textures.ts'
 import type { TrackSpec } from './tracks.ts'
 
 export interface TrackNode {
@@ -187,6 +187,7 @@ export class Track {
     this.group.add(shoulderL, shoulderR)
 
     this.buildMarkers()
+    this.buildRoadside()
     this.buildStartGate()
   }
 
@@ -252,6 +253,125 @@ export class Track {
     geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2))
     if (col) geo.setAttribute('color', new THREE.BufferAttribute(col, 3))
     geo.setIndex(idx)
+    return geo
+  }
+
+  private buildRoadside() {
+    const rails = new THREE.MeshStandardMaterial({
+      map: guardrailTexture(),
+      roughness: 0.55,
+      metalness: 0.4,
+      side: THREE.DoubleSide,
+    })
+    for (const side of [-1, 1]) {
+      for (const run of this.cornerRuns()) {
+        this.group.add(new THREE.Mesh(this.buildRailGeometry(side * (this.halfWidth + 5.4), 0.8, run[0], run[1]), rails))
+      }
+    }
+
+    const boardMat = new THREE.MeshStandardMaterial({ map: barrierTexture(), roughness: 0.7, metalness: 0.05 })
+    const boardGeo = new THREE.PlaneGeometry(2.6, 0.9)
+    const step = Math.max(6, Math.round(this.count / 26))
+    let boards = 0
+    for (let i = 20; i < this.count; i += step) {
+      const node = this.nodes[i]
+      if (Math.abs(node.curv) < 0.012 || boards > 13) continue
+      for (const side of [-1, 1]) {
+        const board = new THREE.Mesh(boardGeo, boardMat)
+        const p = this.edge(node, side * (this.halfWidth + 3.1), 0.55)
+        board.position.copy(p)
+        board.rotation.y = Math.atan2(node.side.x, node.side.z) + (side < 0 ? Math.PI : 0)
+        this.group.add(board)
+      }
+      boards++
+    }
+
+    const bodyGeo = new THREE.CylinderGeometry(0.15, 0.19, 1.0, 6)
+    const headGeo = new THREE.SphereGeometry(0.15, 6, 5)
+    const bodyMat = new THREE.MeshStandardMaterial({ roughness: 0.85 })
+    const headMat = new THREE.MeshStandardMaterial({ color: 0xe8b48a, roughness: 0.8 })
+    const slots: { pos: THREE.Vector3; yaw: number }[] = []
+    let clusters = 0
+    for (let i = 30; i < this.count; i += Math.max(20, Math.round(this.count / 9))) {
+      const node = this.nodes[i]
+      if (Math.abs(node.curv) < 0.011 || clusters > 8) continue
+      for (let k = 0; k < 12; k++) {
+        const t = this.nodes[(i + k) % this.count]
+        const side = k % 2 === 0 ? 1 : -1
+        const p = this.edge(t, side * (this.halfWidth + 6.4 + (k % 4) * 0.5), 0.52)
+        slots.push({ pos: p, yaw: Math.atan2(t.tan.x, t.tan.z) })
+      }
+      clusters++
+    }
+    if (slots.length > 0) {
+      const bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, slots.length)
+      const heads = new THREE.InstancedMesh(headGeo, headMat, slots.length)
+      const m = new THREE.Matrix4()
+      const q = new THREE.Quaternion()
+      const up = new THREE.Vector3(0, 1, 0)
+      const one = new THREE.Vector3(1, 1, 1)
+      const color = new THREE.Color()
+      slots.forEach((slot, k) => {
+        q.setFromAxisAngle(up, slot.yaw)
+        m.compose(slot.pos, q, one)
+        bodies.setMatrixAt(k, m)
+        bodies.setColorAt(k, color.setHSL(0.02 + Math.random() * 0.62, 0.35 + Math.random() * 0.3, 0.38 + Math.random() * 0.25))
+        const head = slot.pos.clone()
+        head.y += 0.62
+        m.compose(head, q, one)
+        heads.setMatrixAt(k, m)
+      })
+      bodies.instanceColor!.needsUpdate = true
+      this.group.add(bodies, heads)
+    }
+  }
+
+  private cornerRuns(): [number, number][] {
+    const threshold = 0.0095
+    const runs: [number, number][] = []
+    let start = -1
+    for (let i = 0; i < this.count; i++) {
+      const tight = Math.abs(this.nodes[i].curv) > threshold
+      if (tight && start < 0) start = i
+      if (!tight && start >= 0) {
+        if (i - start > 6) runs.push([Math.max(0, start - 6), i + 6])
+        start = -1
+      }
+    }
+    if (start >= 0 && this.count - start > 6) runs.push([Math.max(0, start - 6), this.count])
+    return runs.slice(0, 10)
+  }
+
+  private buildRailGeometry(lat: number, height: number, from: number, to: number): THREE.BufferGeometry {
+    const n = to - from
+    const pos = new Float32Array((n + 1) * 2 * 3)
+    const uv = new Float32Array((n + 1) * 2 * 2)
+    const idx: number[] = []
+    for (let i = 0; i <= n; i++) {
+      const node = this.sample(from + i)
+      const base = this.edge(node, lat, 0.04)
+      const o = i * 6
+      pos[o] = base.x
+      pos[o + 1] = base.y
+      pos[o + 2] = base.z
+      pos[o + 3] = base.x
+      pos[o + 4] = base.y + height
+      pos[o + 5] = base.z
+      const u = (from + i) * 0.55
+      uv[i * 4] = u
+      uv[i * 4 + 1] = 0
+      uv[i * 4 + 2] = u
+      uv[i * 4 + 3] = 1
+      if (i < n) {
+        const k = i * 2
+        idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3)
+      }
+    }
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2))
+    geo.setIndex(idx)
+    geo.computeVertexNormals()
     return geo
   }
 

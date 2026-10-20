@@ -454,3 +454,53 @@ export function shadowTexture(): THREE.Texture {
   cache.set(key, tex)
   return tex
 }
+
+export function guardrailTexture(): THREE.Texture {
+  const key = 'guardrail'
+  if (cache.has(key)) return cache.get(key)!
+  const [c, ctx] = canvas(256)
+  ctx.fillStyle = '#c9d2d8'
+  ctx.fillRect(0, 0, 256, 256)
+  const grad = ctx.createLinearGradient(0, 0, 0, 256)
+  grad.addColorStop(0, 'rgba(255,255,255,0.5)')
+  grad.addColorStop(0.45, 'rgba(255,255,255,0.05)')
+  grad.addColorStop(1, 'rgba(20,28,34,0.35)')
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, 256, 256)
+  ctx.fillStyle = 'rgba(30, 40, 48, 0.5)'
+  for (let x = 0; x < 256; x += 64) ctx.fillRect(x, 0, 5, 256)
+  ctx.fillStyle = 'rgba(200, 60, 40, 0.85)'
+  ctx.fillRect(0, 18, 256, 12)
+  ctx.fillStyle = 'rgba(255,255,255,0.9)'
+  for (let x = 0; x < 256; x += 64) ctx.fillRect(x, 18, 32, 12)
+  grain(ctx, 256, 256, 18, 0.5)
+  const tex = finish(c, [1, 1])
+  cache.set(key, tex)
+  return tex
+}
+
+export function barrierTexture(): THREE.Texture {
+  const key = 'barrier'
+  if (cache.has(key)) return cache.get(key)!
+  const [c, ctx] = canvas(256, 128)
+  ctx.fillStyle = '#f2f2ef'
+  ctx.fillRect(0, 0, 256, 128)
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(0, 0, 256, 128)
+  ctx.clip()
+  ctx.fillStyle = '#d8402a'
+  for (let x = -128; x < 384; x += 64) {
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x + 32, 0)
+    ctx.lineTo(x + 32 - 128, 128)
+    ctx.lineTo(x - 128, 128)
+    ctx.closePath()
+    ctx.fill()
+  }
+  ctx.restore()
+  const tex = finish(c, [1, 1])
+  cache.set(key, tex)
+  return tex
+}
