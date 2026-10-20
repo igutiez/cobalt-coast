@@ -19,7 +19,21 @@ function updateOrientation() {
   rotate.classList.toggle('hidden', !(touch && portrait))
 }
 
+function showFatal(message: string) {
+  const boot = document.getElementById('boot')
+  if (!boot) return
+  boot.classList.remove('done')
+  const status = document.getElementById('boot-status')
+  if (status) status.textContent = message
+}
+
 async function main() {
+  window.addEventListener('error', (event) => {
+    showFatal(`ERROR: ${event.message}`)
+  })
+  window.addEventListener('unhandledrejection', (event) => {
+    showFatal(`ERROR: ${String(event.reason)}`)
+  })
   updateOrientation()
   window.addEventListener('resize', updateOrientation)
   fill.style.width = '18%'
@@ -43,7 +57,16 @@ async function main() {
   fill.style.width = '100%'
   status.textContent = 'READY'
 
-  await new Promise((r) => setTimeout(r, 420))
+  const started = performance.now()
+  while (!game.hasRendered && performance.now() - started < 8000) {
+    await new Promise((r) => setTimeout(r, 150))
+  }
+  if (!game.hasRendered) {
+    status.textContent = `NO SE PUDO DIBUJAR · ${game.webglInfo}`
+    return
+  }
+
+  await new Promise((r) => setTimeout(r, 200))
   boot.classList.add('done')
   window.setTimeout(() => boot.remove(), 900)
 

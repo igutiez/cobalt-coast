@@ -449,10 +449,27 @@ export class Game {
   }
 
   static detectQuality(): Quality {
+    const forced = new URLSearchParams(window.location.search).get('quality')
+    if (forced === 'low' || forced === 'medium' || forced === 'high') return forced
     const touch =
       matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0 || 'ontouchstart' in window
-    if (touch || Math.min(window.innerWidth, window.innerHeight) < 600) return 'medium'
+    if (touch || Math.min(window.innerWidth, window.innerHeight) < 600) return 'low'
     return 'high'
+  }
+
+  get webglInfo(): string {
+    try {
+      const gl = this.renderer.getContext()
+      const ext = gl.getExtension('WEBGL_debug_renderer_info')
+      const name = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : 'GPU desconocida'
+      return `${name} · WebGL2 ${this.renderer.capabilities.isWebGL2 ? 'sí' : 'no'}`
+    } catch {
+      return 'sin contexto WebGL'
+    }
+  }
+
+  get hasRendered(): boolean {
+    return this.firstFrameChecked
   }
 
   private setQuality(q: Quality) {
