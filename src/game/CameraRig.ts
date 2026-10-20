@@ -64,7 +64,7 @@ export class CameraRig {
       .addScaledVector(UP, height)
 
     const groundY = track.heightAt(track.nearest(this.desired, kart.hint))
-    this.desired.y = Math.max(this.desired.y, groundY + 2.2, kart.pos.y + 1.8)
+    this.desired.y = Math.max(this.desired.y, groundY + 2.6, kart.pos.y + 2.2)
 
     if (countdown > 0) {
       this.intro = Math.min(1, this.intro + dt * 0.32)
@@ -93,7 +93,7 @@ export class CameraRig {
       this.camera.position.z = kart.pos.z + away.z * scale
     }
 
-    this.lookAt.copy(kart.pos).addScaledVector(fwd, 5.5 + speedRatio * 5).addScaledVector(UP, 1.25)
+    this.lookAt.copy(kart.pos).addScaledVector(fwd, 11 + speedRatio * 6).addScaledVector(UP, 1.5)
     this.smoothLook.lerp(this.lookAt, 1 - Math.exp(-dt * 7))
 
     this.shake = Math.max(0, this.shake - dt * 2.2)
