@@ -15,8 +15,15 @@ export class CameraRig {
   private orbit = 0
   private intro = 0
   mobile = false
+  heightBias = 0
 
   constructor(aspect: number) {
+    try {
+      const saved = Number(localStorage.getItem('cobalt-cam-height'))
+      if (Number.isFinite(saved)) this.heightBias = THREE.MathUtils.clamp(saved, -1.2, 3)
+    } catch {
+      // Storage blocked: the default camera height applies.
+    }
     this.camera = new THREE.PerspectiveCamera(66, aspect, 0.35, 9000)
     this.camera.position.set(0, 12, 26)
     this.smoothLook.set(0, 0, 0)
@@ -25,6 +32,15 @@ export class CameraRig {
   resize(aspect: number) {
     this.camera.aspect = aspect
     this.camera.updateProjectionMatrix()
+  }
+
+  nudgeHeight(delta: number) {
+    this.heightBias = THREE.MathUtils.clamp(this.heightBias + delta, -1.2, 3)
+    try {
+      localStorage.setItem('cobalt-cam-height', String(this.heightBias))
+    } catch {
+      // Storage blocked: the adjustment lasts for this session.
+    }
   }
 
   kick(amount = 1) {
@@ -53,8 +69,8 @@ export class CameraRig {
     const speedRatio = THREE.MathUtils.clamp(kart.speed / kart.spec.stats.maxSpeed, 0, 1.2)
     const fwd = kart.forward
     const right = kart.right
-    const back = 5.6 + speedRatio * 2.2
-    const height = 2.15 + speedRatio * 0.25
+    const back = 7.6 + speedRatio * 2.6 + (this.mobile ? 0 : 0) + this.heightBias * 0.25
+    const height = 3.6 + speedRatio * 0.35 + (this.mobile ? 0.1 : 0) + this.heightBias
     const driftOffset = THREE.MathUtils.clamp(kart.driftAmount, -1, 1) * 2.4
 
     this.desired
@@ -93,7 +109,7 @@ export class CameraRig {
       this.camera.position.z = kart.pos.z + away.z * scale
     }
 
-    this.lookAt.copy(kart.pos).addScaledVector(fwd, 11 + speedRatio * 6).addScaledVector(UP, 1.5)
+    this.lookAt.copy(kart.pos).addScaledVector(fwd, 11 + speedRatio * 6).addScaledVector(UP, 1.5 + this.heightBias * 0.4)
     this.smoothLook.lerp(this.lookAt, 1 - Math.exp(-dt * 7))
 
     this.shake = Math.max(0, this.shake - dt * 2.2)
@@ -107,7 +123,7 @@ export class CameraRig {
     this.camera.position.add(this.shakeOffset)
     this.camera.lookAt(this.smoothLook)
 
-    const targetFov = (this.mobile ? 66 : 62) + speedRatio * 9 + (kart.boostTime > 0 ? 7 : 0)
+    const targetFov = (this.mobile ? 64 : 62) + speedRatio * 9 + (kart.boostTime > 0 ? 7 : 0)
     this.fov += (targetFov - this.fov) * Math.min(1, dt * 3)
     this.camera.fov = this.fov
     this.camera.updateProjectionMatrix()

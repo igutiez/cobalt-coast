@@ -4,6 +4,7 @@ export class Input {
   private keys = new Set<string>()
   private touch = { left: false, right: false, brake: false, drift: false }
   private wheelSteer = 0
+  onCameraDrag: ((dy: number) => void) | null = null
   private itemQueued = false
   private pauseQueued = false
   private respawnQueued = false
@@ -113,6 +114,27 @@ export class Input {
       const deg = Math.max(-maxAngle, Math.min(maxAngle, base + (e.clientX - startX) * 1.45))
       apply(deg)
     })
+    window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', end)
+  }
+
+  attachCamera(canvas: HTMLCanvasElement) {
+    let dragId: number | null = null
+    let lastY = 0
+    canvas.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      dragId = e.pointerId
+      lastY = e.clientY
+    })
+    window.addEventListener('pointermove', (e) => {
+      if (dragId === null || e.pointerId !== dragId) return
+      const dy = e.clientY - lastY
+      lastY = e.clientY
+      if (Math.abs(dy) > 0.4) this.onCameraDrag?.(dy)
+    })
+    const end = (e: PointerEvent) => {
+      if (dragId === e.pointerId) dragId = null
+    }
     window.addEventListener('pointerup', end)
     window.addEventListener('pointercancel', end)
   }

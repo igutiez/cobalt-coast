@@ -169,6 +169,11 @@ export class Game {
 
     this.hud = new HUD(this.track, this.input.isTouch)
     this.input.attachTouch(document.getElementById('hud')!)
+    this.input.attachCamera(canvas)
+    this.input.onCameraDrag = (dy) => {
+      this.cameraRig.nudgeHeight(-dy * 0.012)
+      this.showCameraHint()
+    }
     this.menu = new Menu({
       onStart: (car) => void this.startRace(car),
       onCar: (car) => {
@@ -785,6 +790,18 @@ export class Game {
   }
 
   private firstFrameChecked = false
+
+  private camHintTimer = 0
+
+  private showCameraHint() {
+    const el = document.getElementById('cam-hint')
+    if (!el) return
+    const value = this.cameraRig.heightBias
+    el.textContent = `CÁMARA ${value >= 0 ? '+' : ''}${value.toFixed(1)}`
+    el.classList.remove('hidden')
+    window.clearTimeout(this.camHintTimer)
+    this.camHintTimer = window.setTimeout(() => el.classList.add('hidden'), 1200)
+  }
 
   private renderComposer() {
     if (this.quality === 'low') {
