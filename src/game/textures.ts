@@ -54,29 +54,6 @@ export function roadTexture(): THREE.Texture {
     ctx.arc(x, y, r, 0, Math.PI * 2)
     ctx.fill()
   }
-  for (let i = 0; i < 7; i++) {
-    ctx.fillStyle = `rgba(20, 22, 26, ${0.05 + Math.random() * 0.06})`
-    ctx.beginPath()
-    ctx.ellipse(Math.random() * 512, Math.random() * 512, 30 + Math.random() * 70, 14 + Math.random() * 30, Math.random() * 3, 0, Math.PI * 2)
-    ctx.fill()
-  }
-  ctx.strokeStyle = 'rgba(18, 20, 24, 0.35)'
-  for (let i = 0; i < 10; i++) {
-    let x = Math.random() * 512
-    let y = Math.random() * 512
-    ctx.lineWidth = 0.8 + Math.random()
-    ctx.beginPath()
-    ctx.moveTo(x, y)
-    for (let k = 0; k < 4; k++) {
-      x += (Math.random() - 0.5) * 46
-      y += 14 + Math.random() * 22
-      ctx.lineTo(x, y)
-    }
-    ctx.stroke()
-  }
-  ctx.fillStyle = 'rgba(15, 16, 20, 0.1)'
-  ctx.fillRect(120, 0, 82, 512)
-  ctx.fillRect(310, 0, 82, 512)
   ctx.fillStyle = 'rgba(255,255,255,0.62)'
   ctx.fillRect(18, 0, 5, 512)
   ctx.fillRect(489, 0, 5, 512)

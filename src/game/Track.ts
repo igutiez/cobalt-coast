@@ -188,7 +188,6 @@ export class Track {
 
     this.buildMarkers()
     this.buildRoadside()
-    this.buildFlora()
     this.buildStartGate()
   }
 
@@ -255,40 +254,6 @@ export class Track {
     if (col) geo.setAttribute('color', new THREE.BufferAttribute(col, 3))
     geo.setIndex(idx)
     return geo
-  }
-
-  private buildFlora() {
-    if ((this.spec.theme.flora ?? 'tropical') === 'barren') return
-    const tuftGeo = new THREE.ConeGeometry(0.22, 0.55, 5)
-    const tuftMat = new THREE.MeshStandardMaterial({ color: 0x86a24e, roughness: 0.9, flatShading: true })
-    const flowerGeo = new THREE.IcosahedronGeometry(0.1, 0)
-    const flowerMat = new THREE.MeshStandardMaterial({ roughness: 0.8 })
-    const count = 150
-    const tufts = new THREE.InstancedMesh(tuftGeo, tuftMat, count)
-    const flowers = new THREE.InstancedMesh(flowerGeo, flowerMat, count)
-    const matrix = new THREE.Matrix4()
-    const quat = new THREE.Quaternion()
-    const up = new THREE.Vector3(0, 1, 0)
-    const one = new THREE.Vector3(1, 1, 1)
-    const color = new THREE.Color()
-    const palette = [0xfff4d6, 0xffd166, 0xff8fb1, 0xf2f2f2]
-    for (let i = 0; i < count; i++) {
-      const node = this.nodes[Math.floor(Math.random() * this.count)]
-      const side = Math.random() < 0.5 ? -1 : 1
-      const lat = side * (this.halfWidth + 6.6 + Math.random() * 2.6)
-      const base = this.edge(node, lat, 0.06)
-      quat.setFromAxisAngle(up, Math.random() * Math.PI)
-      const scale = 0.7 + Math.random() * 0.7
-      matrix.compose(base, quat, new THREE.Vector3(scale, scale, scale))
-      tufts.setMatrixAt(i, matrix)
-      tufts.setColorAt(i, color.setHSL(0.2 + Math.random() * 0.08, 0.4, 0.34 + Math.random() * 0.16))
-      const flower = base.clone()
-      flower.y += 0.32
-      matrix.compose(flower, quat, one)
-      flowers.setMatrixAt(i, matrix)
-      flowers.setColorAt(i, color.set(palette[i % palette.length]))
-    }
-    this.group.add(tufts, flowers)
   }
 
   private buildRoadside() {
