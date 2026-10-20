@@ -188,6 +188,7 @@ export class Track {
 
     this.buildMarkers()
     this.buildRoadside()
+    this.buildFlora()
     this.buildStartGate()
   }
 
@@ -256,6 +257,40 @@ export class Track {
     return geo
   }
 
+  private buildFlora() {
+    if ((this.spec.theme.flora ?? 'tropical') === 'barren') return
+    const tuftGeo = new THREE.ConeGeometry(0.22, 0.55, 5)
+    const tuftMat = new THREE.MeshStandardMaterial({ color: 0x86a24e, roughness: 0.9, flatShading: true })
+    const flowerGeo = new THREE.IcosahedronGeometry(0.1, 0)
+    const flowerMat = new THREE.MeshStandardMaterial({ roughness: 0.8 })
+    const count = 150
+    const tufts = new THREE.InstancedMesh(tuftGeo, tuftMat, count)
+    const flowers = new THREE.InstancedMesh(flowerGeo, flowerMat, count)
+    const matrix = new THREE.Matrix4()
+    const quat = new THREE.Quaternion()
+    const up = new THREE.Vector3(0, 1, 0)
+    const one = new THREE.Vector3(1, 1, 1)
+    const color = new THREE.Color()
+    const palette = [0xfff4d6, 0xffd166, 0xff8fb1, 0xf2f2f2]
+    for (let i = 0; i < count; i++) {
+      const node = this.nodes[Math.floor(Math.random() * this.count)]
+      const side = Math.random() < 0.5 ? -1 : 1
+      const lat = side * (this.halfWidth + 6.6 + Math.random() * 2.6)
+      const base = this.edge(node, lat, 0.06)
+      quat.setFromAxisAngle(up, Math.random() * Math.PI)
+      const scale = 0.7 + Math.random() * 0.7
+      matrix.compose(base, quat, new THREE.Vector3(scale, scale, scale))
+      tufts.setMatrixAt(i, matrix)
+      tufts.setColorAt(i, color.setHSL(0.2 + Math.random() * 0.08, 0.4, 0.34 + Math.random() * 0.16))
+      const flower = base.clone()
+      flower.y += 0.32
+      matrix.compose(flower, quat, one)
+      flowers.setMatrixAt(i, matrix)
+      flowers.setColorAt(i, color.set(palette[i % palette.length]))
+    }
+    this.group.add(tufts, flowers)
+  }
+
   private buildRoadside() {
     const rails = new THREE.MeshStandardMaterial({
       map: guardrailTexture(),
@@ -295,10 +330,10 @@ export class Track {
     for (let i = 30; i < this.count; i += Math.max(20, Math.round(this.count / 9))) {
       const node = this.nodes[i]
       if (Math.abs(node.curv) < 0.011 || clusters > 8) continue
-      for (let k = 0; k < 12; k++) {
+      for (let k = 0; k < 8; k++) {
         const t = this.nodes[(i + k) % this.count]
         const side = k % 2 === 0 ? 1 : -1
-        const p = this.edge(t, side * (this.halfWidth + 6.4 + (k % 4) * 0.5), 0.52)
+        const p = this.edge(t, side * (this.halfWidth + 8.4 + (k % 4) * 0.7), 0.52)
         slots.push({ pos: p, yaw: Math.atan2(t.tan.x, t.tan.z) })
       }
       clusters++
