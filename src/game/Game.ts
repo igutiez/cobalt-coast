@@ -136,6 +136,7 @@ export class Game {
   private bootProgress = 0
   private heroAngle = 0
   private trackIndex = 0
+  private pendingTrack: number | null = null
   private cameraMode: 'chase' | 'cockpit' = 'chase'
   private cup = { active: false, index: 0, points: {} as Record<string, number> }
 
@@ -275,9 +276,10 @@ export class Game {
     this.scene.remove(this.track.group)
     this.scene.remove(this.world.group)
     this.scene.remove(this.items.group)
-    this.disposeObject(this.track.group)
-    this.disposeObject(this.world.group)
+    this.track.dispose()
+    this.world.dispose()
     this.disposeObject(this.items.group)
+    this.renderer.renderLists.dispose()
     const spec = TRACKS[this.trackIndex]
     this.track = new Track(spec)
     this.scene.add(this.track.group)
@@ -290,23 +292,35 @@ export class Game {
   }
 
   private selectTrack(index: number) {
-    if (index === this.trackIndex) return
-    this.trackIndex = index
-    this.rebuildWorld()
-    this.state = 'menu'
-    this.hud.show(false)
-    this.menu.showTitle()
-    this.createHero()
+    this.pendingTrack = index === this.trackIndex ? null : index
+  }
+
+  private async applyPendingTrack() {
+    if (this.pendingTrack === null || this.pendingTrack === this.trackIndex) {
+      this.pendingTrack = null
+      return
+    }
+    const loading = document.getElementById('track-loading')
+    loading?.classList.remove('hidden')
+    await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 40)))
+    this.trackIndex = this.pendingTrack
+    this.pendingTrack = null
+    try {
+      this.rebuildWorld()
+    } catch (error) {
+      console.error(error)
+      document.getElementById('fatal')?.classList.remove('hidden')
+      const text = document.getElementById('fatal-text')
+      if (text) text.textContent = `No se pudo cargar el circuito. ${String(error)}`
+      return
+    }
+    loading?.classList.add('hidden')
   }
 
   private startCup() {
     this.cup = { active: true, index: 0, points: {} }
     this.audio.click()
-    if (this.trackIndex !== 0) {
-      this.trackIndex = 0
-      this.rebuildWorld()
-      this.hud.setTrack(this.track)
-    }
+    this.pendingTrack = 0
     void this.startRace(this.selectedCar())
   }
 
@@ -342,8 +356,7 @@ export class Game {
       if (this.cup.index < TRACKS.length - 1) {
         this.cup.index++
         this.menu.hideResults()
-        this.trackIndex = this.cup.index
-        this.rebuildWorld()
+        this.pendingTrack = this.cup.index
         void this.startRace(this.currentCar)
         return
       }
@@ -404,6 +417,7 @@ export class Game {
   }
 
   async startRace(carIndex: number) {
+    await this.applyPendingTrack()
     this.currentCar = carIndex
     this.audio.unlock()
     this.audio.click()
@@ -436,6 +450,7 @@ export class Game {
 
     this.menu.showRace()
     this.hud.show(true)
+    this.hud.setTrack(this.track)
     this.hud.countdown('3')
     this.cameraRig.beginIntro()
     this.hud.setItem(null)

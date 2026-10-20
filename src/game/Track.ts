@@ -331,6 +331,16 @@ export class Track {
     return { pos, yaw }
   }
 
+  dispose() {
+    this.group.traverse((o) => {
+      const mesh = o as THREE.Mesh
+      if (!mesh.isMesh) return
+      mesh.geometry?.dispose()
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+      for (const material of materials) material?.dispose()
+    })
+  }
+
   setStartLights(color: 'red' | 'green' | 'off') {
     if (!this.lightMat) return
     if (color === 'off') this.lightMat.emissiveIntensity = 0.05

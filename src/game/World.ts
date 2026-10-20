@@ -631,6 +631,19 @@ export class World {
     return this.terrainHeight(x, z, this.nearestTrack(x, z))
   }
 
+  dispose() {
+    this.sunLight.shadow.map?.dispose()
+    this.sunLight.shadow.map = null
+    this.group.traverse((o) => {
+      const mesh = o as THREE.Mesh
+      if (!mesh.isMesh) return
+      mesh.geometry?.dispose()
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+      for (const material of materials) material?.dispose()
+    })
+    this.waterMat.dispose()
+  }
+
   update(_dt: number, time: number, playerPos: THREE.Vector3, camera: THREE.Camera) {
     this.waterMat.uniforms.uTime.value = time
     this.sunLight.position.copy(playerPos).addScaledVector(this.sunDir, 190)

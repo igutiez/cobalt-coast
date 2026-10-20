@@ -1690,3 +1690,18 @@ kbd {
   padding: 14px;
   text-align: center;
 }
+
+.track-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(120% 90% at 50% 110%, rgba(255, 122, 60, 0.16), transparent 55%),
+    linear-gradient(180deg, #04101b 0%, #071c2c 60%, #0b2a3c 100%);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(28px, 6vw, 52px);
+  letter-spacing: 0.18em;
+  color: #eafcff;
+  animation: screen-in 0.25s ease both;
+}

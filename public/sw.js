@@ -1,4 +1,4 @@
-const CACHE = 'cobalt-coast-v15'
+const CACHE = 'cobalt-coast-v16'
 const CORE = [
   './',
   './index.html',
