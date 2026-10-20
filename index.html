@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#08131f" />
+    <meta name="description" content="Cobalt Coast — arcade beach kart racing in your browser." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Cobalt Coast" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="preload" href="./fonts/bebas-neue.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="./fonts/rajdhani-600.woff2" as="font" type="font/woff2" crossorigin />
+    <title>Cobalt Coast — Beach Kart Racing</title>
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+
+    <div id="ui">
+      <!-- ===================== HUD ===================== -->
+      <div id="hud" class="hidden" aria-live="polite">
+        <div class="hud-top-left">
+          <div class="pos-block">
+            <span id="pos-number">1</span><span id="pos-suffix">st</span>
+          </div>
+          <div class="lap-block">
+            <span class="label">LAP</span>
+            <span id="lap-current">1</span><span class="lap-total">/3</span>
+          </div>
+        </div>
+
+        <div class="hud-top-center">
+          <div class="timer" id="race-timer">00:00.000</div>
+          <div class="lap-time" id="lap-time">LAP 00:00.000</div>
+        </div>
+
+        <div class="hud-top-right">
+          <canvas id="minimap" width="220" height="164"></canvas>
+        </div>
+
+        <div class="hud-bottom-left">
+          <canvas id="speedo" width="260" height="260"></canvas>
+          <div class="boost-track"><div id="boost-fill"></div></div>
+        </div>
+
+        <div class="hud-bottom-center">
+          <div id="drift-meter" class="drift-meter">
+            <div class="drift-label">DRIFT</div>
+            <div class="drift-bars"><i></i><i></i><i></i></div>
+          </div>
+          <div id="item-slot" class="item-slot empty">
+            <canvas id="item-icon" width="128" height="128"></canvas>
+            <span id="item-hint">ITEM</span>
+          </div>
+        </div>
+
+        <div class="countdown hidden" id="countdown"><span id="countdown-text">3</span></div>
+        <div class="race-message hidden" id="race-message"></div>
+        <div id="wrong-way" class="wrong-way hidden">WRONG WAY</div>
+        <div id="lap-flash" class="lap-flash hidden"></div>
+
+        <div class="touch-controls hidden" id="touch-controls">
+          <div class="touch-steer">
+            <button class="touch-btn" data-touch="left" aria-label="Izquierda">◀</button>
+            <button class="touch-btn" data-touch="right" aria-label="Derecha">▶</button>
+          </div>
+          <div class="touch-actions">
+            <button class="touch-btn brake" data-touch="brake" aria-label="Freno">BRAKE</button>
+            <button class="touch-btn drift" data-touch="drift" aria-label="Derrape">DRIFT</button>
+            <button class="touch-btn item" data-touch="item" aria-label="Objeto">ITEM</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== TITLE ===================== -->
+      <section id="title-screen" class="screen">
+        <div class="screen-bg"></div>
+        <div class="title-wrap">
+          <div class="title-lockup">
+            <div class="kicker">VECTOR TIDE PRESENTS</div>
+            <h1 class="game-title"><span class="t1">COBALT</span><span class="t2">COAST</span></h1>
+            <div class="subtitle">BEACH KART RACING</div>
+          </div>
+
+          <div class="garage">
+            <div class="garage-title"><span>CIRCUIT</span></div>
+            <div class="track-rail" id="track-rail"></div>
+            <div class="garage-title" style="margin-top: 14px"><span>CHOOSE YOUR BUGGY</span></div>
+            <div class="car-rail" id="car-rail"></div>
+            <div class="car-stats" id="car-stats">
+              <div class="stat"><span>SPEED</span><div class="stat-bar"><i data-stat="speed"></i></div></div>
+              <div class="stat"><span>ACCEL</span><div class="stat-bar"><i data-stat="accel"></i></div></div>
+              <div class="stat"><span>GRIP</span><div class="stat-bar"><i data-stat="grip"></i></div></div>
+            </div>
+          </div>
+
+          <div class="title-actions">
+            <button id="start-race" class="btn btn-primary">
+              <span class="btn-shine"></span>
+              <span class="btn-label">RACE</span>
+              <span class="btn-sub">3 LAPS · 6 RACERS</span>
+            </button>
+            <button id="btn-cup" class="btn btn-ghost">CUP · 3 RACES</button>
+            <button id="btn-settings" class="btn btn-ghost">HOW TO PLAY</button>
+          </div>
+
+          <div class="title-footer">
+            <button id="btn-quality" class="chip">QUALITY: HIGH</button>
+            <button id="btn-sound" class="chip">SOUND: ON</button>
+            <button id="btn-install" class="chip hidden">INSTALL APP</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== RESULTS ===================== -->
+      <section id="results-screen" class="screen hidden">
+        <div class="screen-bg"></div>
+        <div class="results-panel">
+          <div class="results-head">
+            <div class="kicker">RACE COMPLETE</div>
+            <h2 id="results-title">2ND PLACE</h2>
+            <div class="results-time" id="results-time">02:14.882</div>
+          <div class="results-cup hidden" id="results-cup"></div>
+          </div>
+          <div class="standings" id="standings"></div>
+          <div class="results-actions">
+            <button id="btn-again" class="btn btn-primary"><span class="btn-label">RACE AGAIN</span></button>
+            <button id="btn-menu" class="btn btn-ghost">GARAGE</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== HELP ===================== -->
+      <section id="help-screen" class="screen hidden">
+        <div class="screen-bg"></div>
+        <div class="help-panel">
+          <div class="kicker">DRIVER BRIEFING</div>
+          <h2>HOW TO PLAY</h2>
+          <div class="help-grid">
+            <div class="help-row"><span class="keys"><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd></span><span>Steer</span></div>
+            <div class="help-row"><span class="keys"><kbd>S</kbd> / <kbd>↓</kbd></span><span>Brake</span></div>
+            <div class="help-row"><span class="keys"><kbd>SPACE</kbd></span><span>Drift — release to mini-turbo</span></div>
+            <div class="help-row"><span class="keys"><kbd>E</kbd></span><span>Use item</span></div>
+            <div class="help-row"><span class="keys"><kbd>R</kbd></span><span>Reset to track</span></div>
+            <div class="help-row"><span class="keys"><kbd>ESC</kbd></span><span>Pause</span></div>
+          </div>
+          <p class="help-note">Grab glowing crates for turbo, missiles, shields and oil slicks. Three laps, six racers — may the best buggy win.</p>
+          <button id="btn-help-close" class="btn btn-primary"><span class="btn-label">GOT IT</span></button>
+        </div>
+      </section>
+
+      <!-- ===================== PAUSE ===================== -->
+      <section id="pause-screen" class="screen hidden">
+        <div class="screen-bg"></div>
+        <div class="pause-panel">
+          <h2>PAUSED</h2>
+          <button id="btn-resume" class="btn btn-primary"><span class="btn-label">RESUME</span></button>
+          <button id="btn-restart" class="btn btn-ghost">RESTART RACE</button>
+          <button id="btn-quit" class="btn btn-ghost">QUIT TO GARAGE</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================== BOOT ===================== -->
+    <div id="boot">
+      <div class="boot-inner">
+        <div class="boot-mark">COBALT<span>COAST</span></div>
+        <div class="boot-bar"><i id="boot-fill"></i></div>
+        <div class="boot-status" id="boot-status">WARMING UP THE ENGINES</div>
+      </div>
+    </div>
+
+    <div id="rotate-hint" class="hidden">
+      <div class="rotate-icon">⟳</div>
+      <div>ROTA EL DISPOSITIVO<br /><span>para jugar en horizontal</span></div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
