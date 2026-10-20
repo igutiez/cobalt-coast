@@ -8,6 +8,7 @@ export class Input {
   private itemQueued = false
   private pauseQueued = false
   private respawnQueued = false
+  private cameraQueued = false
   private readonly onKeyDown: (e: KeyboardEvent) => void
   private readonly onKeyUp: (e: KeyboardEvent) => void
   readonly isTouch = matchMedia('(pointer: coarse)').matches
@@ -25,6 +26,7 @@ export class Input {
       if (k === ' ' || k === 'e' || k === 'shift' || k === 'enter') this.itemQueued = true
       if (k === 'escape' || k === 'p') this.pauseQueued = true
       if (k === 'r') this.respawnQueued = true
+      if (k === 'c') this.cameraQueued = true
     }
     this.onKeyUp = (e) => this.keys.delete(e.key.toLowerCase())
     window.addEventListener('keydown', this.onKeyDown, { passive: false })
@@ -160,6 +162,12 @@ export class Input {
   consumePause(): boolean {
     const v = this.pauseQueued
     this.pauseQueued = false
+    return v
+  }
+
+  consumeCamera(): boolean {
+    const v = this.cameraQueued
+    this.cameraQueued = false
     return v
   }
 

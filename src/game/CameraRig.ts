@@ -16,11 +16,12 @@ export class CameraRig {
   private intro = 0
   mobile = false
   heightBias = 0
+  mode: 'chase' | 'cockpit' = 'chase'
 
   constructor(aspect: number) {
     try {
       const saved = Number(localStorage.getItem('cobalt-cam-height'))
-      if (Number.isFinite(saved)) this.heightBias = THREE.MathUtils.clamp(saved, -1.2, 3)
+      if (Number.isFinite(saved)) this.heightBias = THREE.MathUtils.clamp(saved, -1.5, 4)
     } catch {
       // Storage blocked: the default camera height applies.
     }
@@ -35,7 +36,7 @@ export class CameraRig {
   }
 
   nudgeHeight(delta: number) {
-    this.heightBias = THREE.MathUtils.clamp(this.heightBias + delta, -1.2, 3)
+    this.heightBias = THREE.MathUtils.clamp(this.heightBias + delta, -1.5, 4)
     try {
       localStorage.setItem('cobalt-cam-height', String(this.heightBias))
     } catch {
@@ -65,7 +66,28 @@ export class CameraRig {
     this.camera.updateProjectionMatrix()
   }
 
+  private updateCockpit(dt: number, kart: Kart) {
+    const fwd = kart.forward
+    const head = kart.pos.clone().addScaledVector(UP, 1.98).addScaledVector(fwd, 0.25)
+    this.camera.position.lerp(head, 1 - Math.exp(-dt * 30))
+    const look = kart.pos
+      .clone()
+      .addScaledVector(fwd, 24)
+      .addScaledVector(UP, 1.9 + this.heightBias * 0.25)
+    this.smoothLook.lerp(look, 1 - Math.exp(-dt * 16))
+    this.camera.lookAt(this.smoothLook)
+    const roll = THREE.MathUtils.clamp(-kart.driftAmount * 0.22, -0.12, 0.12)
+    this.camera.rotateZ(roll)
+    this.fov += (78 - this.fov) * Math.min(1, dt * 5)
+    this.camera.fov = this.fov
+    this.camera.updateProjectionMatrix()
+  }
+
   update(dt: number, kart: Kart, track: Track, countdown: number) {
+    if (this.mode === 'cockpit' && countdown <= 0) {
+      this.updateCockpit(dt, kart)
+      return
+    }
     const speedRatio = THREE.MathUtils.clamp(kart.speed / kart.spec.stats.maxSpeed, 0, 1.2)
     const fwd = kart.forward
     const right = kart.right
@@ -86,13 +108,13 @@ export class CameraRig {
       this.intro = Math.min(1, this.intro + dt * 0.32)
       const t = 1 - Math.pow(1 - this.intro, 3)
       const radius = THREE.MathUtils.lerp(9.5, 7.4, t)
-      const height = THREE.MathUtils.lerp(6.2, 3.2, t)
+      const height = THREE.MathUtils.lerp(6.2, 3.2, t) + this.heightBias
       this.camera.position
         .copy(kart.pos)
         .addScaledVector(fwd, -radius)
         .addScaledVector(right, THREE.MathUtils.lerp(1.6, 0, t))
         .addScaledVector(UP, height)
-      this.smoothLook.copy(kart.pos).addScaledVector(fwd, 3).addScaledVector(UP, 1.1)
+      this.smoothLook.copy(kart.pos).addScaledVector(fwd, 3).addScaledVector(UP, 1.1 + this.heightBias * 0.4)
       this.camera.lookAt(this.smoothLook)
       this.camera.fov = THREE.MathUtils.lerp(52, 60, t)
       this.camera.updateProjectionMatrix()

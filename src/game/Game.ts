@@ -135,6 +135,7 @@ export class Game {
   private bootProgress = 0
   private heroAngle = 0
   private trackIndex = 0
+  private cameraMode: 'chase' | 'cockpit' = 'chase'
   private cup = { active: false, index: 0, points: {} as Record<string, number> }
 
   constructor(canvas: HTMLCanvasElement) {
@@ -219,6 +220,13 @@ export class Game {
       if (boot) boot.textContent = 'CONTEXTO GRÁFICO PERDIDO · RECARGA LA PÁGINA'
       document.getElementById('boot')?.classList.remove('done')
     })
+    try {
+      if (localStorage.getItem('cobalt-camera-mode') === 'cockpit') this.cameraMode = 'cockpit'
+    } catch {
+      // Storage blocked: chase camera stays.
+    }
+    this.cameraRig.mode = this.cameraMode
+    document.getElementById('btn-pov')?.addEventListener('click', () => this.toggleCameraMode())
     window.addEventListener('resize', () => this.onResize())
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && this.state === 'race') this.pause()
@@ -406,6 +414,10 @@ export class Game {
 
     const player = new Kart(KART_SPECS[carIndex], true, this.track, 3)
     player.speedScale = this.input.isTouch ? 0.9 : 1
+    const povButton = document.getElementById('btn-pov')
+    if (povButton) povButton.textContent = this.cameraMode === 'cockpit' ? 'CHASE' : 'POV'
+    this.cameraRig.mode = this.cameraMode
+    player.group.visible = this.cameraMode !== 'cockpit'
     this.scene.add(player.group)
     this.player = player
     this.karts = [player]
@@ -702,6 +714,7 @@ export class Game {
       if (this.input.consumeItem() && this.player.item && racing) {
         this.items.use(this.player, this.karts)
       }
+      if (this.input.consumeCamera()) this.toggleCameraMode()
       if (this.input.consumeRespawn() && racing) {
         this.player.respawn(this.track)
       }
@@ -845,6 +858,19 @@ export class Game {
       }
     } catch {
       // readPixels can be unavailable on some drivers; rendering stays as configured.
+    }
+  }
+
+  private toggleCameraMode() {
+    this.cameraMode = this.cameraMode === 'chase' ? 'cockpit' : 'chase'
+    this.cameraRig.mode = this.cameraMode
+    const btn = document.getElementById('btn-pov')
+    if (btn) btn.textContent = this.cameraMode === 'cockpit' ? 'CHASE' : 'POV'
+    this.player.group.visible = this.cameraMode !== 'cockpit'
+    try {
+      localStorage.setItem('cobalt-camera-mode', this.cameraMode)
+    } catch {
+      // Storage blocked: the mode lasts for this session.
     }
   }
 
