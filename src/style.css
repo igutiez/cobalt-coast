@@ -293,6 +293,8 @@ body {
 
 .garage {
   grid-column: 2;
+  min-width: 0;
+  max-width: 100%;
   grid-row: 1 / span 2;
   align-self: center;
   background: linear-gradient(160deg, rgba(9, 34, 50, 0.86), rgba(5, 18, 29, 0.9));
@@ -330,10 +332,12 @@ body {
 }
 .car-rail {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  min-width: 0;
 }
 .car-card {
+  min-width: 0;
   position: relative;
   border: 1px solid rgba(130, 246, 255, 0.16);
   background: linear-gradient(165deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
@@ -375,6 +379,8 @@ body {
   }
 }
 .car-thumb {
+  min-width: 0;
+  overflow: hidden;
   height: 54px;
   border-radius: 2px;
   margin-bottom: 8px;
@@ -450,6 +456,8 @@ body {
    ============================================================ */
 .track-rail {
   display: flex;
+  min-width: 0;
+  max-width: 100%;
   gap: 8px;
   margin-bottom: 8px;
   overflow-x: auto;
@@ -1309,6 +1317,8 @@ kbd {
     padding: 5px 6px 6px;
   }
   .car-thumb {
+  min-width: 0;
+  overflow: hidden;
     height: 30px;
     margin-bottom: 4px;
   }
@@ -1552,6 +1562,8 @@ kbd {
     margin-bottom: 5px !important;
   }
   .car-thumb {
+  min-width: 0;
+  overflow: hidden;
     height: 24px;
   }
   .car-card {
