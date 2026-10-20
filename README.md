@@ -33,10 +33,10 @@ El build de producción registra el service worker: tras la primera visita la ap
 | Acción | Teclado | Táctil |
 | --- | --- | --- |
 | Acelerar | automático | automático |
-| Girar | `A` / `D` o `←` / `→` | botones ◀ ▶ |
-| Frenar | `S` / `↓` | BRAKE |
+| Girar | `A` / `D` o `←` / `→` | volante abajo a la izquierda (arrastra) |
+| Frenar | `S` / `↓` | BRAKE (grande) |
 | Derrapar | `SPACE` (o `SHIFT`) | DRIFT |
-| Usar objeto | `E` (`Enter` también) | ITEM |
+| Usar objeto | `E` (`Enter` también) | ITEM (grande) |
 | Recolocar en pista | `R` | — |
 | Pausa | `ESC` / `P` | — |
 

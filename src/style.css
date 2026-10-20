@@ -913,9 +913,26 @@ body {
   background: radial-gradient(circle at 50% 40%, rgba(47, 242, 223, 0.4), rgba(4, 16, 27, 0.6));
   box-shadow: 0 0 24px rgba(47, 242, 223, 0.5);
 }
-.touch-steer {
-  display: flex;
-  gap: 14px;
+.touch-wheel {
+  pointer-events: auto;
+  width: 168px;
+  height: 168px;
+  margin-bottom: 4px;
+  touch-action: none;
+  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.45));
+}
+.touch-wheel svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(0deg);
+  will-change: transform;
+  transition: transform 0.05s linear;
+}
+.touch-wheel.active svg {
+  transition: none;
+}
+.touch-wheel.active {
+  filter: drop-shadow(0 0 22px rgba(47, 242, 223, 0.45));
 }
 .touch-actions {
   display: flex;
@@ -923,22 +940,22 @@ body {
   align-items: flex-end;
 }
 .touch-btn.brake {
-  width: 64px;
-  height: 64px;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-}
-.touch-btn.drift {
   width: 86px;
   height: 86px;
   font-size: 12px;
   letter-spacing: 0.1em;
+}
+.touch-btn.drift {
+  width: 112px;
+  height: 112px;
+  font-size: 15px;
+  letter-spacing: 0.1em;
   border-color: rgba(255, 179, 71, 0.45);
 }
 .touch-btn.item {
-  width: 72px;
-  height: 72px;
-  font-size: 11px;
+  width: 92px;
+  height: 92px;
+  font-size: 13px;
   letter-spacing: 0.1em;
   border-color: rgba(47, 242, 223, 0.5);
 }
@@ -1195,8 +1212,13 @@ kbd {
     height: 60px;
   }
   .touch-btn {
-    width: 66px;
-    height: 66px;
+    width: 84px;
+    height: 84px;
+    font-size: 13px;
+  }
+  .touch-wheel {
+    width: 150px;
+    height: 150px;
   }
   .title-footer {
     flex-wrap: wrap;
@@ -1399,19 +1421,24 @@ kbd {
     bottom: 5px;
   }
   .touch-btn.brake {
-    width: 52px;
-    height: 52px;
-    font-size: 9px;
-  }
-  .touch-btn.drift {
-    width: 62px;
-    height: 62px;
+    width: 78px;
+    height: 78px;
     font-size: 10px;
   }
+  .touch-btn.drift {
+    width: 102px;
+    height: 102px;
+    font-size: 13px;
+  }
   .touch-btn.item {
-    width: 55px;
-    height: 55px;
-    font-size: 9px;
+    width: 84px;
+    height: 84px;
+    font-size: 11px;
+  }
+  .touch-wheel {
+    width: 152px;
+    height: 152px;
+    margin-bottom: 0;
   }
   .hud-top-right {
     top: 8px;

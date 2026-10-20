@@ -65,9 +65,20 @@
         <div id="lap-flash" class="lap-flash hidden"></div>
 
         <div class="touch-controls hidden" id="touch-controls">
-          <div class="touch-steer">
-            <button class="touch-btn" data-touch="left" aria-label="Izquierda">◀</button>
-            <button class="touch-btn" data-touch="right" aria-label="Derecha">▶</button>
+          <div class="touch-wheel" id="touch-wheel" aria-label="Volante: arrastra a izquierda o derecha">
+            <svg viewBox="0 0 200 200" id="touch-wheel-rotor" aria-hidden="true">
+              <circle cx="100" cy="100" r="88" fill="rgba(4,16,27,0.62)" stroke="rgba(130,246,255,0.22)" stroke-width="2"/>
+              <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(47,242,223,0.55)" stroke-width="10"/>
+              <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="3"/>
+              <g stroke="rgba(190,235,245,0.75)" stroke-width="9" stroke-linecap="round">
+                <line x1="100" y1="100" x2="100" y2="36"/>
+                <line x1="100" y1="100" x2="44" y2="132"/>
+                <line x1="100" y1="100" x2="156" y2="132"/>
+              </g>
+              <circle cx="100" cy="100" r="26" fill="rgba(9,34,50,0.9)" stroke="rgba(47,242,223,0.8)" stroke-width="3"/>
+              <circle cx="100" cy="100" r="7" fill="#2ff2df"/>
+              <circle cx="100" cy="18" r="5" fill="#ffb347"/>
+            </svg>
           </div>
           <div class="touch-actions">
             <button class="touch-btn brake" data-touch="brake" aria-label="Freno">BRAKE</button>
@@ -145,6 +156,7 @@
             <div class="help-row"><span class="keys"><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd></span><span>Steer</span></div>
             <div class="help-row"><span class="keys"><kbd>S</kbd> / <kbd>↓</kbd></span><span>Brake</span></div>
             <div class="help-row"><span class="keys"><kbd>SPACE</kbd></span><span>Drift — release to mini-turbo</span></div>
+            <div class="help-row"><span class="keys">📱</span><span>Móvil: volante abajo a la izquierda (arrastra), botones grandes a la derecha</span></div>
             <div class="help-row"><span class="keys"><kbd>E</kbd></span><span>Use item</span></div>
             <div class="help-row"><span class="keys"><kbd>R</kbd></span><span>Reset to track</span></div>
             <div class="help-row"><span class="keys"><kbd>ESC</kbd></span><span>Pause</span></div>
