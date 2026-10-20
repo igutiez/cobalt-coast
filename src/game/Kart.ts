@@ -100,6 +100,8 @@ export class Kart {
   speed = 0
   steer = 0
   driftAmount = 0
+  driftBlend = 0
+  private boostPower = 1.5
   driftCharge = 0
   driftTier = 0
   drifting = false
@@ -235,8 +237,9 @@ export class Kart {
     this.drifting = false
   }
 
-  useBoost(seconds: number) {
+  useBoost(seconds: number, power = 1.5) {
     this.boostTime = Math.max(this.boostTime, seconds)
+    this.boostPower = power
   }
 
   activateShield() {
@@ -287,19 +290,20 @@ export class Kart {
     }
 
     this.steer += (input.steer - this.steer) * Math.min(1, dt * 9.5)
-    const drifting = input.drift && this.speed > 9 && Math.abs(this.steer) > 0.2 && !spin && racing
+    const drifting = input.drift && this.speed > 11 && Math.abs(this.steer) > 0.3 && !spin && racing
+    this.driftBlend += ((drifting ? 1 : 0) - this.driftBlend) * Math.min(1, dt * (drifting ? 8 : 5))
     this.drifting = drifting
 
     let targetSpeed = stats.maxSpeed * this.speedScale
     if (this.offroad) targetSpeed *= 0.65
     if (this.boostTime > 0) {
-      targetSpeed *= 1.5
+      targetSpeed *= this.boostPower
       this.boostTime = Math.max(0, this.boostTime - dt)
     }
 
 
     if (!spin) {
-      const accel = (this.boostTime > 0 ? stats.accel * 2.2 : stats.accel) * (this.offroad ? 0.6 : 1)
+      const accel = (this.boostTime > 0 ? stats.accel * (this.boostPower > 1.4 ? 2.2 : 1.5) : stats.accel) * (this.offroad ? 0.6 : 1)
       if (input.brake) {
         this.speed = Math.max(0, this.speed - 26 * dt)
       } else if (this.speed < targetSpeed) {
@@ -316,7 +320,7 @@ export class Kart {
         }
       }
       if (this.speed < 0) this.speed = 0
-      const turnMul = drifting ? 1.35 : 1
+      const turnMul = 1 + 0.2 * this.driftBlend
       const highSpeed = THREE.MathUtils.clamp((this.speed - 16) / 24, 0, 1)
       const turnRate = stats.turn * (0.98 - 0.38 * highSpeed) * turnMul
       this.yaw += this.steer * turnRate * dt
@@ -326,15 +330,15 @@ export class Kart {
     }
 
     if (drifting) {
-      this.driftAmount += (this.steer * 0.4 - this.driftAmount) * Math.min(1, dt * 8)
+      this.driftAmount += (this.steer * 0.35 * this.driftBlend - this.driftAmount) * Math.min(1, dt * 7)
       this.driftCharge += dt * (0.55 + Math.abs(this.steer) * 0.85)
-      this.speed *= 1 - 0.12 * dt
+      this.speed *= 1 - 0.06 * dt
       this.driftTier = this.driftCharge > 2.4 ? 3 : this.driftCharge > 1.3 ? 2 : this.driftCharge > 0.55 ? 1 : 0
     } else {
       this.driftAmount += (0 - this.driftAmount) * Math.min(1, dt * 6)
       if (this.driftCharge > 0.55 && this.speed > 6) {
-        const seconds = this.driftTier >= 3 ? 1.5 : this.driftTier === 2 ? 1 : 0.65
-        this.useBoost(seconds)
+        const seconds = this.driftTier >= 3 ? 1.2 : this.driftTier === 2 ? 0.85 : 0.55
+        this.useBoost(seconds, 1.3)
       }
       this.driftCharge = Math.max(0, this.driftCharge - dt * 1.4)
       this.driftTier = 0
@@ -342,7 +346,7 @@ export class Kart {
 
     const fwd = this.forward
     const right = this.right
-    const slip = -this.driftAmount * this.speed * 0.4
+    const slip = -this.driftAmount * this.speed * 0.32
     this.pos.addScaledVector(fwd, this.speed * dt)
     this.pos.addScaledVector(right, slip * dt)
 
