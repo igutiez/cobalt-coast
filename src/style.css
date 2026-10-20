@@ -1555,3 +1555,17 @@ kbd {
     font-size: 12px;
   }
 }
+
+.install-steps {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgba(220, 245, 252, 0.9);
+}
+.install-steps li::marker {
+  color: var(--cyan);
+  font-weight: 700;
+}

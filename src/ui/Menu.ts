@@ -168,21 +168,34 @@ export class Menu {
       this.installBtn.classList.add('hidden')
       this.showToast('App instalada. Ábrela desde el icono de tu pantalla de inicio.')
     })
+    const openHelp = () => {
+      const steps = document.getElementById('install-steps')!
+      const note = document.getElementById('install-note')!
+      if (ios) {
+        steps.innerHTML = '<li>Toca el botón Compartir (⬆) de Safari.</li><li>Elige «Añadir a pantalla de inicio».</li><li>Confirma con «Añadir».</li>'
+        note.textContent = 'En iPhone no existe el aviso automático: Apple obliga a hacerlo desde Compartir.'
+      } else if (/Android/i.test(navigator.userAgent)) {
+        steps.innerHTML = '<li>Abre el menú ⋮ de Chrome.</li><li>Toca «Instalar app» o «Añadir a pantalla de inicio».</li><li>Confirma con «Instalar».</li>'
+        note.textContent = 'Si Chrome dice que ya está instalada y no ves el icono: escribe chrome://webapks en la barra, busca Cobalt Coast y pulsa Desinstalar. Después vuelve a intentarlo.'
+      } else {
+        steps.innerHTML = '<li>Pulsa el icono de instalar de la barra de direcciones.</li><li>O abre el menú ⋮ y elige «Instalar Cobalt Coast».</li>'
+        note.textContent = 'Si el navegador dice que ya está instalada, desinstálala primero desde el menú de la app o desde la barra de direcciones.'
+      }
+      document.getElementById('install-help')!.classList.remove('hidden')
+    }
+    document.getElementById('install-help-close')!.addEventListener('click', () => {
+      document.getElementById('install-help')!.classList.add('hidden')
+    })
     this.installFab.addEventListener('click', () => {
       if (this.installPrompt) {
         void this.installPrompt()
         return
       }
-      if (ios) {
-        this.showToast('En Safari: toca Compartir (⬆) y elige «Añadir a pantalla de inicio».')
-      } else {
-        this.showToast('Abre el menú del navegador y elige «Instalar app» o «Añadir a pantalla de inicio».')
-      }
+      openHelp()
     })
     this.installBtn.addEventListener('click', () => {
       if (this.installPrompt) void this.installPrompt()
-      else if (ios) this.showToast('En Safari: toca Compartir (⬆) y elige «Añadir a pantalla de inicio».')
-      else this.showToast('Abre el menú del navegador y elige «Instalar app».')
+      else openHelp()
     })
 
     if (!standalone && (ios || matchMedia('(pointer: coarse)').matches)) {
