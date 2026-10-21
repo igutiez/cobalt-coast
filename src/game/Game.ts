@@ -145,7 +145,7 @@ export class Game {
   private pendingTrack: number | null = null
   private cameraMode: 'chase' | 'cockpit' = 'chase'
   private readonly cupTracks = [0, 2, 4, 6, 8]
-  private cup = { active: false, index: 0, points: {} as Record<string, number> }
+  private cup = { active: false, index: 0, points: {} as Record<string, number>, gain: {} as Record<string, number> }
 
   readonly initialCar: number
   readonly autoRace: boolean
@@ -297,7 +297,7 @@ export class Game {
   }
 
   private startCup() {
-    this.cup = { active: true, index: 0, points: {} }
+    this.cup = { active: true, index: 0, points: {}, gain: {} }
     this.audio.click()
     this.saveCup()
     this.pendingTrack = this.trackIndex === this.cupTracks[0] ? null : this.cupTracks[0]
@@ -305,7 +305,7 @@ export class Game {
   }
 
   private cupPointsFor(rank: number): number {
-    const table = [10, 8, 6, 4, 3, 2]
+    const table = [25, 18, 15, 12, 10, 8]
     return table[Math.min(table.length - 1, Math.max(0, rank - 1))]
   }
 
@@ -313,7 +313,9 @@ export class Game {
     if (!this.cup.active) return
     for (const k of this.karts) {
       const key = k.isPlayer ? 'YOU' : k.spec.name
-      this.cup.points[key] = (this.cup.points[key] ?? 0) + this.cupPointsFor(k.rank)
+      const gain = this.cupPointsFor(k.rank)
+      this.cup.points[key] = (this.cup.points[key] ?? 0) + gain
+      this.cup.gain[key] = gain
     }
   }
 
@@ -322,9 +324,25 @@ export class Game {
     const final = this.cup.index >= this.cupTracks.length - 1
     const mine = this.cup.points.YOU ?? 0
     const best = Math.max(mine, ...Object.values(this.cup.points))
+    const table = this.karts
+      .map((k) => {
+        const key = k.isPlayer ? 'YOU' : k.spec.name
+        return {
+          name: k.isPlayer ? 'TÚ' : k.spec.name,
+          color: `#${k.spec.accent.toString(16).padStart(6, '0')}`,
+          points: this.cup.points[key] ?? 0,
+          gain: this.cup.gain[key] ?? 0,
+          isPlayer: k.isPlayer,
+        }
+      })
+      .sort((a, b) => b.points - a.points)
     return {
       points: mine,
       total: mine,
+      gain: this.cup.gain.YOU ?? 0,
+      race: this.cup.index + 1,
+      races: this.cupTracks.length,
+      table,
       next: final ? undefined : TRACKS[this.cupTracks[this.cup.index + 1]].name,
       final,
       champion: final && mine >= best,

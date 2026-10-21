@@ -17,6 +17,10 @@ export interface Standing {
 export interface CupResult {
   points: number
   total: number
+  gain: number
+  race: number
+  races: number
+  table: { name: string; color: string; points: number; gain: number; isPlayer: boolean }[]
   next?: string
   final: boolean
   champion: boolean
@@ -373,7 +377,7 @@ export class Menu {
         cupEl.textContent = `TOTAL COPA · ${cup.total} PTS`
         label.textContent = 'NUEVA COPA'
       } else {
-        cupEl.textContent = `COPA · ${cup.points} PTS · SIGUIENTE: ${cup.next ?? ''}`
+        cupEl.textContent = `CARRERA ${cup.race} DE ${cup.races} · +${cup.gain} PTS · SIGUIENTE: ${cup.next ?? ''}`
         label.textContent = 'SIGUIENTE CARRERA'
       }
     } else {
@@ -381,17 +385,31 @@ export class Menu {
       label.textContent = 'OTRA CARRERA'
     }
     time.textContent = `${format(totalTime)}  ·  MEJOR VUELTA ${format(playerBest)}`
-    list.innerHTML = standings
-      .map(
-        (s) => `<div class="row ${s.isPlayer ? 'you' : ''}">
-          <span class="rank">${s.rank}</span>
-          <span class="swatch" style="background:${s.color}"></span>
-          <span class="name">${s.name}</span>
-          <span class="time">${format(s.time)}</span>
-          <span class="best">${isFinite(s.best) ? format(s.best) : ''}</span>
-        </div>`,
-      )
-      .join('')
+    if (cup) {
+      list.innerHTML = cup.table
+        .map(
+          (row, i) => `<div class="row ${row.isPlayer ? 'you' : ''}">
+            <span class="rank">${i + 1}</span>
+            <span class="swatch" style="background:${row.color}"></span>
+            <span class="name">${row.name}</span>
+            <span class="pts">${row.points}</span>
+            <span class="best">${row.gain > 0 ? `+${row.gain}` : ''}</span>
+          </div>`,
+        )
+        .join('')
+    } else {
+      list.innerHTML = standings
+        .map(
+          (s) => `<div class="row ${s.isPlayer ? 'you' : ''}">
+            <span class="rank">${s.rank}</span>
+            <span class="swatch" style="background:${s.color}"></span>
+            <span class="name">${s.name}</span>
+            <span class="time">${format(s.time)}</span>
+            <span class="best">${isFinite(s.best) ? format(s.best) : ''}</span>
+          </div>`,
+        )
+        .join('')
+    }
     this.title.classList.add('hidden')
     this.pause.classList.add('hidden')
     this.results.classList.remove('hidden')

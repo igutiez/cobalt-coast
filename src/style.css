@@ -1927,3 +1927,11 @@ body {
 .hud-bottom-center {
   bottom: max(20px, env(safe-area-inset-bottom));
 }
+
+.row .pts {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  color: #ffd166;
+  text-align: right;
+}
