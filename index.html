@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#08131f" />
+    <meta name="description" content="Cobalt Coast — arcade beach kart racing in your browser." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Cobalt Coast" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="preload" href="./fonts/bebas-neue.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="./fonts/rajdhani-600.woff2" as="font" type="font/woff2" crossorigin />
+    <title>Cobalt Coast — Beach Kart Racing</title>
+    <script type="module" crossorigin src="./assets/index-DFhs5KTM.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/three-CCcZ-LxQ.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-D0VVVq3B.css">
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+
+    <div id="ui">
+      <!-- ===================== HUD ===================== -->
+      <div id="hud" class="hidden" aria-live="polite">
+        <div class="hud-top-left">
+          <div class="pos-block">
+            <span id="pos-number">1</span><span id="pos-suffix">st</span>
+          </div>
+          <div class="lap-block">
+            <span class="label">VUELTA</span>
+            <span id="lap-current">1</span><span class="lap-total">/3</span>
+          </div>
+        </div>
+
+        <div class="hud-top-center">
+          <div class="timer" id="race-timer">00:00.000</div>
+          <div class="lap-time" id="lap-time">VUELTA 00:00.000</div>
+          <div class="speed-compact"><span id="speed-compact-value">0</span><span class="unit">KM/H</span></div>
+        </div>
+
+        <div class="hud-top-right">
+          <canvas id="minimap" width="220" height="164"></canvas>
+          <button id="btn-pov" class="pov-btn">PILOTO</button>
+        </div>
+
+        <div class="hud-bottom-left">
+          <canvas id="speedo" width="260" height="260"></canvas>
+          <div class="boost-track"><div id="boost-fill"></div></div>
+        </div>
+
+        <div class="hud-bottom-center">
+          <div id="drift-meter" class="drift-meter">
+            <div class="drift-label">DERRAPE</div>
+            <div class="drift-bars"><i></i><i></i><i></i></div>
+          </div>
+          <div id="item-slot" class="item-slot empty">
+            <canvas id="item-icon" width="128" height="128"></canvas>
+            <span id="item-hint">OBJETO</span>
+          </div>
+        </div>
+
+        <div class="countdown hidden" id="countdown"><span id="countdown-text">3</span></div>
+        <div class="race-message hidden" id="race-message"></div>
+        <div id="wrong-way" class="wrong-way hidden">SENTIDO CONTRARIO</div>
+        <div id="cam-hint" class="cam-hint hidden"></div>
+        <div id="lap-flash" class="lap-flash hidden"></div>
+
+        <div class="touch-controls hidden" id="touch-controls">
+          <div class="touch-wheel" id="touch-wheel" aria-label="Volante: arrastra a izquierda o derecha">
+            <svg viewBox="0 0 200 200" id="touch-wheel-rotor" aria-hidden="true">
+              <circle cx="100" cy="100" r="88" fill="rgba(4,16,27,0.62)" stroke="rgba(130,246,255,0.22)" stroke-width="2"/>
+              <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(47,242,223,0.55)" stroke-width="10"/>
+              <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="3"/>
+              <g stroke="rgba(190,235,245,0.75)" stroke-width="9" stroke-linecap="round">
+                <line x1="100" y1="100" x2="100" y2="36"/>
+                <line x1="100" y1="100" x2="44" y2="132"/>
+                <line x1="100" y1="100" x2="156" y2="132"/>
+              </g>
+              <circle cx="100" cy="100" r="26" fill="rgba(9,34,50,0.9)" stroke="rgba(47,242,223,0.8)" stroke-width="3"/>
+              <circle cx="100" cy="100" r="7" fill="#2ff2df"/>
+              <circle cx="100" cy="18" r="5" fill="#ffb347"/>
+            </svg>
+          </div>
+          <div class="touch-actions">
+            <button class="touch-btn brake" data-touch="brake" aria-label="Freno">FRENO</button>
+            <button class="touch-btn drift" data-touch="drift" aria-label="Derrape">DERRAPE</button>
+            <button class="touch-btn item" data-touch="item" aria-label="Objeto">OBJETO</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== TITLE ===================== -->
+      <section id="title-screen" class="screen">
+        <div class="screen-bg"></div>
+        <button id="install-fab" class="install-fab hidden">INSTALAR APP</button>
+        <button id="build-badge" class="build-badge">v —</button>
+        <div class="title-wrap">
+          <div class="title-lockup">
+            <div class="kicker">VECTOR TIDE PRESENTA</div>
+            <h1 class="game-title"><span class="t1">COBALT</span><span class="t2">COAST</span></h1>
+            <div class="subtitle">CARRERAS DE KARTS EN LA PLAYA</div>
+          </div>
+
+          <div class="garage">
+            <div class="garage-title"><span>CIRCUITO</span></div>
+            <div class="track-rail" id="track-rail"></div>
+            <div class="garage-title" style="margin-top: 14px"><span>ELIGE TU BUGGY</span></div>
+            <div class="car-rail" id="car-rail"></div>
+            <div class="car-stats" id="car-stats">
+              <div class="stat"><span>SPEED</span><div class="stat-bar"><i data-stat="speed"></i></div></div>
+              <div class="stat"><span>ACCEL</span><div class="stat-bar"><i data-stat="accel"></i></div></div>
+              <div class="stat"><span>GRIP</span><div class="stat-bar"><i data-stat="grip"></i></div></div>
+            </div>
+          </div>
+
+          <div class="title-actions">
+            <button id="start-race" class="btn btn-primary">
+              <span class="btn-shine"></span>
+              <span class="btn-label">CORRER</span>
+              <span class="btn-sub">3 VUELTAS · 6 PILOTOS</span>
+            </button>
+            <button id="btn-cup" class="btn btn-ghost">COPA · 5 CARRERAS</button>
+            <button id="btn-settings" class="btn btn-ghost">CÓMO JUGAR</button>
+          </div>
+
+          <div class="title-footer">
+            <button id="btn-quality" class="chip">CALIDAD: ALTA</button>
+            <button id="btn-sound" class="chip">SONIDO: SÍ</button>
+            <button id="btn-install" class="chip hidden">INSTALAR APP</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== RESULTS ===================== -->
+      <section id="results-screen" class="screen hidden">
+        <div class="screen-bg"></div>
+        <div class="results-panel">
+          <div class="results-head">
+            <div class="kicker">CARRERA TERMINADA</div>
+            <h2 id="results-title">2º PUESTO</h2>
+            <div class="results-time" id="results-time">02:14.882</div>
+          <div class="results-cup hidden" id="results-cup"></div>
+          </div>
+          <div class="standings" id="standings"></div>
+          <div class="results-actions">
+            <button id="btn-again" class="btn btn-primary"><span class="btn-label">OTRA CARRERA</span></button>
+            <button id="btn-menu" class="btn btn-ghost">GARAJE</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== INSTALL HELP ===================== -->
+      <section id="install-help" class="screen hidden">
+        <div class="screen-bg"></div>
+        <div class="help-panel">
+          <div class="kicker">INSTALAR EN EL MÓVIL</div>
+          <h2>INSTALAR COBALT COAST</h2>
+          <ol class="install-steps" id="install-steps"></ol>
+          <p class="help-note" id="install-note"></p>
+          <button id="install-help-close" class="btn btn-primary"><span class="btn-label">ENTENDIDO</span></button>
+        </div>
+      </section>
+
+      <!-- ===================== HELP ===================== -->
+      <section id="help-screen" class="screen hidden">
+        <div class="screen-bg"></div>
+        <div class="help-panel">
+          <div class="kicker">INSTRUCCIONES</div>
+          <h2>CÓMO JUGAR</h2>
+          <div class="help-grid">
+            <div class="help-row"><span class="keys"><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd></span><span>Girar</span></div>
+            <div class="help-row"><span class="keys"><kbd>S</kbd> / <kbd>↓</kbd></span><span>Frenar</span></div>
+            <div class="help-row"><span class="keys"><kbd>SPACE</kbd></span><span>Derrape — suelta para mini-turbo</span></div>
+            <div class="help-row"><span class="keys">📱</span><span>Móvil: volante abajo a la izquierda (arrastra), botones grandes a la derecha</span></div>
+            <div class="help-row"><span class="keys">↕</span><span>Arrastra arriba/abajo en el fondo para ajustar la altura de la cámara</span></div>
+            <div class="help-row"><span class="keys"><kbd>E</kbd></span><span>Usar objeto</span></div>
+            <div class="help-row"><span class="keys"><kbd>R</kbd></span><span>Recolocar en pista</span></div>
+            <div class="help-row"><span class="keys"><kbd>ESC</kbd></span><span>Pausa</span></div>
+          </div>
+          <p class="help-note">Recoge las cajas brillantes para conseguir turbo, misiles, escudos y manchas de aceite. Tres vueltas y seis pilotos: que gane el mejor buggy.</p>
+          <button id="btn-help-close" class="btn btn-primary"><span class="btn-label">ENTENDIDO</span></button>
+        </div>
+      </section>
+
+      <!-- ===================== PAUSE ===================== -->
+      <section id="pause-screen" class="screen hidden">
+        <div class="screen-bg"></div>
+        <div class="pause-panel">
+          <h2>PAUSA</h2>
+          <button id="btn-resume" class="btn btn-primary"><span class="btn-label">SEGUIR</span></button>
+          <button id="btn-restart" class="btn btn-ghost">REINICIAR CARRERA</button>
+          <button id="btn-quit" class="btn btn-ghost">SALIR AL GARAJE</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================== BOOT ===================== -->
+    <div id="boot">
+      <div class="boot-inner">
+        <div class="boot-mark">COBALT<span>COAST</span></div>
+        <div class="boot-bar"><i id="boot-fill"></i></div>
+        <div class="boot-status" id="boot-status">WARMING UP THE ENGINES</div>
+      </div>
+    </div>
+
+    <div id="install-toast" class="install-toast hidden"></div>
+    <button id="update-banner" class="update-banner hidden">NUEVA VERSIÓN · ACTUALIZAR</button>
+    <div id="track-loading" class="track-loading hidden"><div>CARGANDO CIRCUITO…</div></div>
+    <div id="fatal" class="fatal hidden">
+      <div class="fatal-box">
+        <h2>NO SE PUDO DIBUJAR</h2>
+        <p id="fatal-text">El navegador perdió el contexto gráfico.</p>
+        <button id="fatal-reload" class="btn btn-primary"><span class="btn-label">RECARGAR</span></button>
+      </div>
+    </div>
+
+    <div id="rotate-hint" class="hidden">
+      <div class="rotate-icon">⟳</div>
+      <div>ROTA EL DISPOSITIVO<br /><span>para jugar en horizontal</span></div>
+    </div>
+
+  </body>
+</html>
